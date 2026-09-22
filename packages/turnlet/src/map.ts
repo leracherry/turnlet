@@ -1,3 +1,4 @@
+import { throwIfAborted } from './abort.js';
 import { normalizeChunkOptions, type ChunkOptions } from './options.js';
 import { runInChunks } from './runner.js';
 import { createScheduler, type ChunkScheduler } from './scheduler.js';
@@ -9,6 +10,7 @@ export async function mapInChunksWithScheduler<T, R>(
   scheduler: ChunkScheduler,
 ): Promise<R[]> {
   const normalizedOptions = normalizeChunkOptions(options);
+  throwIfAborted(normalizedOptions.signal);
   const results = new Array<R>(input.length);
 
   await runInChunks(
