@@ -1,10 +1,24 @@
 # Turnlet API contract
 
-Status: implemented and tested for Turnlet 0.1. The package is not published yet.
+> [!IMPORTANT]
+> This contract is implemented and tested for Turnlet 0.1. The package is not published yet.
 
-Turnlet processes a finite array in cooperative chunks. It gives the host an opportunity to run other tasks between chunks while preserving ordinary, sequential callback semantics inside each chunk. It does not move work off the main thread or make an individual callback interruptible.
+Turnlet processes a finite array in cooperative chunks while preserving ordinary sequential callback behavior. This document defines the exact guarantees and limits of the public API.
 
-## Public surface
+## At a glance
+
+| Behavior        | Contract                                       |
+| --------------- | ---------------------------------------------- |
+| Order           | Ascending index order, one callback at a time  |
+| Default budget  | `5 ms` per chunk                               |
+| Valid budget    | Finite number in `(0, 50]`                     |
+| First callback  | Runs after an initial yield                    |
+| Cancellation    | Rejects with the original `signal.reason`      |
+| Mapping         | Resolves with a complete, ordered result array |
+| Async callbacks | Unsupported and rejected at runtime            |
+| Input           | Readonly, dense arrays                         |
+
+## Public API
 
 ```ts
 export interface ChunkOptions {
@@ -25,123 +39,160 @@ export declare function mapInChunks<T, U>(
 ): Promise<U[]>;
 ```
 
-Only these two functions and `ChunkOptions` form the planned 0.1 public API. Callbacks are synchronous. Iterables, streams, async callbacks, priorities, progress callbacks, worker execution, and additional collection operators are outside this contract.
+The public surface contains only these two functions and the `ChunkOptions` type.
 
-## Options
+## Inputs and options
 
-`budgetMs` is the approximate amount of callback execution allowed in one chunk. It defaults to 5 milliseconds and must be a finite number in the range `(0, 50]`. Turnlet validates options before inspecting the signal or input. Invalid configuration rejects with a `RangeError` and no callback or scheduling activity occurs.
+### Arrays
 
-The budget is checked between callbacks. A single callback can run longer than the entire budget because JavaScript cannot be preempted partway through a synchronous function. The budget is per operation; simultaneous Turnlet calls do not share a global budget and do not establish global fairness.
+Inputs must be dense arrays. Turnlet captures the array length once, then visits each position in ascending order. If a missing position is encountered, the operation rejects with a `TypeError`.
 
-`signal` cancels pending and future work. Cancellation rejects with `signal.reason` by identity. Calling `abort()` without a custom reason normally supplies a platform `AbortError` DOMException.
+`readonly` is a TypeScript contract, not a snapshot. Turnlet does not mutate the input. The caller must not change its length, positions, or relevant item contents until the operation settles.
 
-## Input requirements
+### `budgetMs`
 
-The input must be a dense, readonly array. Its length is captured once when the operation starts. A missing position encountered during iteration rejects the operation; sparse arrays are unsupported in 0.1.
+The default budget is `5`. A custom value must be finite, greater than `0`, and no greater than `50`. Invalid values reject with a `RangeError` before cancellation, input, callbacks, or scheduling are inspected.
 
-Readonly is a TypeScript contract, not a snapshot. Turnlet does not mutate the input, but callers must not change its length, positions, or relevant item contents until the returned promise settles. Behavior after caller mutation is unspecified beyond Turnlet's normal error and cancellation guarantees.
+The budget is checked **between** callbacks. JavaScript cannot interrupt a callback halfway through, so one callback can run longer than the complete budget.
 
-## Iteration and scheduling
+### `signal`
 
-For valid, nonempty input, Turnlet yields once before invoking the first callback. This gives the host an opportunity to process other work; it does not guarantee that the browser paints a frame.
+`signal` must be an `AbortSignal`. An invalid value rejects with a `TypeError`.
 
-After each yield, the chunk budget clock starts. Callbacks run one at a time in ascending index order and exactly once for every visited position. When the budget is exhausted and unvisited positions remain, Turnlet yields before continuing. It does not perform a final scheduling call after all results are ready.
+Cancellation rejects with `signal.reason` by identity. Calling `abort()` without a custom reason normally produces the platform's `AbortError` DOMException.
 
-The scheduling backend is an implementation detail. Turnlet prefers `globalThis.scheduler.yield()` when available and otherwise uses a task scheduled by `setTimeout`. Importing Turnlet does not require `window` or `document`.
+## Execution model
 
-Each call has independent scheduler and cancellation state. Turnlet promises neither a frame deadline nor fairness between concurrent calls.
+For a valid, non-empty input, Turnlet:
 
-## Empty input
+1. validates the options;
+2. checks for cancellation;
+3. captures the input length;
+4. yields before the first callback;
+5. starts the chunk clock after the yield completes;
+6. invokes callbacks sequentially in ascending index order;
+7. yields again when the budget is exhausted and items remain; and
+8. checks cancellation before resolving.
 
-For valid empty input, `mapInChunks` resolves to `[]` and `forEachInChunks` resolves to `undefined` without scheduling. Options are still validated first, and an already-aborted signal still rejects before the empty result resolves.
+No final scheduling call is made after the result is ready.
 
-## Mapping
+### Empty arrays
 
-`mapInChunks` stores each callback result at the matching input index and resolves only with the complete, ordered result array. Falsy values and `undefined` are valid mapped results. If processing rejects, the partially constructed output is discarded and is never exposed as a successful result.
-
-## Errors
-
-A synchronous callback exception rejects the operation with the exact same value and stops all later callbacks. Earlier callback side effects are not rolled back.
-
-Returning a promise or any thenable is unsupported. Turnlet rejects with a descriptive `TypeError`, observes a returned promise's rejection so it cannot become an unhandled rejection, and stops invoking callbacks. Already-started external async work cannot be cancelled by Turnlet. Runtime thenable detection is required because TypeScript permits an async function in some void-returning callback positions.
-
-Scheduler failures reject the operation with the scheduler's error. Cancellation listeners and fallback timers are cleaned up on success, cancellation, callback failure, and scheduling failure.
-
-## Cancellation checkpoints
-
-Turnlet observes cancellation:
-
-1. after validating options and before scheduling or invoking callbacks;
-2. while waiting for an initial or between-chunk continuation;
-3. after a scheduled continuation arrives;
-4. before and after every callback; and
-5. before resolving the final result.
-
-No new callback starts after cancellation is observed. A callback already executing cannot be interrupted halfway through. Its side effects remain, but the overall operation rejects and mapping never returns a partial result. A late native scheduler continuation is observed safely and cannot resume work after cancellation.
-
-## Representative outcomes
-
-### Empty data
+Valid empty operations do not schedule work:
 
 ```ts
 await mapInChunks([], (value) => value); // []
 await forEachInChunks([], () => {}); // undefined
 ```
 
-Neither call schedules a continuation.
+Options are still validated first. An already-aborted signal still rejects before the empty result resolves.
 
-### Cancellation before start
+### Mapping
+
+`mapInChunks` stores every callback result at its matching input index. Falsy values and `undefined` are valid results. The function resolves only after the complete ordered result is ready.
+
+If processing rejects, the partially constructed array is discarded and never exposed as a successful result.
+
+## Cancellation
+
+Turnlet observes cancellation:
+
+1. before scheduling or invoking callbacks;
+2. while waiting for the initial yield;
+3. while waiting between chunks;
+4. after a scheduled continuation arrives;
+5. before and after each callback; and
+6. before final resolution.
+
+After cancellation is observed, no new callback starts. A callback that is already running cannot be interrupted, and its side effects are not rolled back.
+
+Temporary abort listeners are removed on every settlement path. A pending fallback timer is cleared on abort. A native scheduler continuation that arrives or rejects after cancellation is safely observed and cannot resume work.
+
+## Errors
+
+| Cause                       | Result                                                   |
+| --------------------------- | -------------------------------------------------------- |
+| Invalid `budgetMs`          | Rejects with `RangeError` before work begins             |
+| Invalid `signal`            | Rejects with `TypeError` before work begins              |
+| Sparse input position       | Rejects with `TypeError` when reached                    |
+| Callback throws             | Rejects with the exact thrown value                      |
+| Callback returns a thenable | Observes it, then rejects with a descriptive `TypeError` |
+| Scheduler rejects           | Rejects with the scheduler's original error              |
+| Signal aborts               | Rejects with the exact `signal.reason`                   |
+
+Previously completed callback side effects are never rolled back. Later callbacks do not run after an error is observed.
+
+### Synchronous callbacks only
+
+Promises and thenables are unsupported callback results. Turnlet observes a returned promise's rejection to prevent an unhandled rejection, then rejects the operation with a `TypeError`.
 
 ```ts
-const controller = new AbortController();
-const reason = new Error('cancelled by caller');
-controller.abort(reason);
-
-await mapInChunks([1, 2], (value) => value * 2, {
-  signal: controller.signal,
-}); // rejects with the same `reason`; callback is never called
+// Unsupported
+await mapInChunks(records, async (record) => validateRemotely(record));
 ```
 
-### Cancellation during work
+Already-started external async work cannot be undone. Use Turnlet for synchronous work and perform asynchronous orchestration outside the callback.
 
-When the signal aborts during a scheduling wait or between callbacks, the operation rejects with the original reason. Items completed before cancellation keep their external side effects; unvisited callbacks do not run.
+## Scheduling
 
-### Callback failure
+Turnlet chooses its scheduler when each continuation is requested:
+
+1. use `globalThis.scheduler.yield()` when available;
+2. otherwise schedule a task with `setTimeout(..., 0)`.
+
+Importing Turnlet does not access `window` or `document`, so the module remains safe to import without a DOM. Import safety does not imply official support for every non-browser runtime.
+
+An initial yield gives the browser an opportunity to process other work. It does **not** guarantee a painted frame.
+
+## Concurrent operations
+
+Simultaneous calls have independent clocks, schedulers, and cancellation state. A `5 ms` budget applies to each operation—not to the application as a whole.
+
+Turnlet does not provide global fairness, a shared CPU budget, or a frame deadline.
+
+## Examples
+
+### Ordered mapping
 
 ```ts
-const failure = new Error('invalid record');
-
-await forEachInChunks([1, 2, 3], (value) => {
-  if (value === 2) throw failure;
-}); // rejects with `failure`; value 3 is not visited
-```
-
-### Oversized callback
-
-If one callback takes 20 milliseconds with `budgetMs: 5`, Turnlet cannot interrupt it. After it returns, Turnlet checks cancellation and elapsed time, then yields if work remains.
-
-### Simultaneous operations
-
-Two calls with `budgetMs: 5` each maintain separate clocks and cancellation state. Their combined main-thread work can exceed 5 milliseconds before the host runs unrelated work; no cross-operation CPU cap is implied.
-
-## Usage proposal
-
-```ts
-import { forEachInChunks, mapInChunks } from 'turnlet';
-
-const controller = new AbortController();
-
 const validated = await mapInChunks(
   records,
   (record, index) => validateRecord(record, index),
-  { budgetMs: 5, signal: controller.signal },
-);
-
-await forEachInChunks(
-  products,
-  (product) => topResults.consider(scoreProduct(product, query)),
-  { budgetMs: 5, signal: controller.signal },
+  { budgetMs: 5 },
 );
 ```
 
-This illustrates the intended API only; no installable release is available yet.
+### Bounded side effects
+
+```ts
+await forEachInChunks(
+  products,
+  (product) => topResults.consider(scoreProduct(product, query)),
+  { budgetMs: 5 },
+);
+```
+
+### Replacing stale work
+
+```ts
+let activeController: AbortController | undefined;
+
+async function search(query: string) {
+  activeController?.abort();
+  activeController = new AbortController();
+
+  return mapInChunks(products, (product) => scoreProduct(product, query), {
+    signal: activeController.signal,
+  });
+}
+```
+
+## Not part of 0.1
+
+- Async callbacks
+- Iterables and streams
+- Worker execution
+- Priorities and progress callbacks
+- Global scheduling fairness
+- Additional collection operators
+- Automatic INP optimization or guarantees

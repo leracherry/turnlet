@@ -1,46 +1,120 @@
 # Turnlet
 
-**Small turns. Responsive interfaces.**
+> **Small turns. Responsive interfaces.**
 
-A small TypeScript library for chunking array work to improve Interaction to Next Paint (INP).
+[![CI](https://github.com/leracherry/turnlet/actions/workflows/ci.yml/badge.svg)](https://github.com/leracherry/turnlet/actions/workflows/ci.yml)
 
-> **Status:** The core API is implemented and tested. Turnlet is not published yet, and the demo is still in development.
+Turnlet is a small TypeScript library for processing arrays in cooperative chunks. It gives the browser opportunities to handle input and rendering between chunks, helping you build toward a better [Interaction to Next Paint (INP)](https://web.dev/articles/inp).
 
-## Why Turnlet?
+> [!NOTE]
+> The core API is implemented and tested, but the package is not published yet. The demo is still in development.
 
-Large loops can keep the browser's main thread busy and make an interface feel unresponsive. Turnlet divides that work into small, ordered chunks and yields between them so the browser can handle other tasks.
+## The idea
+
+A large synchronous loop occupies the main thread until every item is finished. Turnlet performs the same ordered work in smaller turns:
+
+```text
+regular loop   work ─────────────────────────────── done
+
+Turnlet        work ─ yield ─ work ─ yield ─ work ─ done
+```
+
+The result is still predictable. Callbacks run one at a time, in array order, without moving work to a worker.
 
 ## API
+
+Turnlet intentionally provides two operations:
+
+| Function          | Use it when                            | Resolves with           |
+| ----------------- | -------------------------------------- | ----------------------- |
+| `mapInChunks`     | Each item produces a value             | An ordered result array |
+| `forEachInChunks` | Work is performed through side effects | `void`                  |
+
+### Map values
 
 ```ts
 import { mapInChunks } from 'turnlet';
 
-const controller = new AbortController();
-
-const results = await mapInChunks(
-  records,
-  (record, index) => validateRecord(record, index),
-  { budgetMs: 5, signal: controller.signal },
+const labels = await mapInChunks(
+  products,
+  (product, index) => `${index + 1}. ${product.name}`,
+  { budgetMs: 5 },
 );
 ```
 
-Turnlet is designed around two functions:
+### Process without allocating results
 
-- `mapInChunks` transforms an array and preserves result order.
-- `forEachInChunks` processes an array without allocating a result array.
+```ts
+import { forEachInChunks } from 'turnlet';
 
-Both use synchronous callbacks, support cancellation with `AbortSignal`, and yield before work begins and whenever the time budget is exhausted.
+await forEachInChunks(
+  products,
+  (product) => searchResults.consider(scoreProduct(product, query)),
+  { budgetMs: 5 },
+);
+```
 
-Turnlet cannot interrupt a callback while it is running. If one item takes a long time to process, that callback can still block the main thread. See the [full API contract](docs/api-contract.md) for precise behavior and limitations.
+### Cancel stale work
+
+```ts
+const controller = new AbortController();
+
+const operation = mapInChunks(records, validateRecord, {
+  signal: controller.signal,
+});
+
+controller.abort();
+await operation; // rejects with signal.reason
+```
+
+This is useful for search and filtering interfaces where a newer request makes the previous one irrelevant.
+
+## Options
+
+```ts
+interface ChunkOptions {
+  budgetMs?: number;
+  signal?: AbortSignal;
+}
+```
+
+| Option     | Default | Description                                                                                     |
+| ---------- | ------: | ----------------------------------------------------------------------------------------------- |
+| `budgetMs` |     `5` | Approximate callback time allowed per chunk. Must be greater than `0` and no greater than `50`. |
+| `signal`   |       — | Cancels pending and future work using the signal's original reason.                             |
+
+## What Turnlet guarantees
+
+- **Stable order** — callbacks and mapped results follow the input order.
+- **An initial yield** — non-empty operations yield before the first callback.
+- **Cooperative cancellation** — no new callback starts after cancellation is observed.
+- **Original errors** — callback errors and abort reasons are preserved.
+- **No partial maps** — `mapInChunks` resolves only with a complete result.
+- **No runtime dependencies** — scheduling uses browser APIs directly.
+
+## Know the limits
+
+Turnlet creates scheduling opportunities; it does not guarantee a particular INP score.
+
+- Callbacks must be synchronous.
+- A running callback cannot be interrupted.
+- One expensive item can exceed the entire chunk budget.
+- Work remains on the main thread; CPU-heavy algorithms may still belong in a worker.
+- Each operation has its own budget. Concurrent calls do not share a global CPU limit.
+
+For exact edge-case behavior, see the [API contract](docs/api-contract.md).
 
 ## Repository
 
-- `packages/turnlet` — the side-effect-free ESM library
-- `apps/demo` — a vanilla TypeScript demo
+| Path               | Purpose                                         |
+| ------------------ | ----------------------------------------------- |
+| `packages/turnlet` | Side-effect-free ESM library and contract tests |
+| `apps/demo`        | Vanilla TypeScript comparison demo              |
+| `docs`             | API behavior and project documentation          |
 
 ## Development
 
-Use Node.js 22.23.2 and run commands from the repository root:
+Use Node.js `22.23.2` and run commands from the repository root:
 
 ```sh
 npm ci
@@ -49,3 +123,5 @@ npm run lint
 npm test
 npm run build
 ```
+
+The full gate validates types, formatting, unit tests, the ESM library build, and the production demo build.
