@@ -1,7 +1,11 @@
+import { throwIfAborted, waitForContinuation } from './abort.js';
+
 type NativeYield = () => PromiseLike<unknown>;
-type ScheduleTask = (continuation: () => void) => void;
+type TaskHandle = unknown;
+type ScheduleTask = (continuation: () => void) => TaskHandle;
 
 export interface SchedulerDependencies {
+  clearTask: (handle: TaskHandle) => void;
   getNativeYield: () => NativeYield | undefined;
   now: () => number;
   scheduleTask: ScheduleTask;
@@ -9,7 +13,7 @@ export interface SchedulerDependencies {
 
 export interface ChunkScheduler {
   now: () => number;
-  yield: () => Promise<void>;
+  yield: (signal?: AbortSignal) => Promise<void>;
 }
 
 function getNativeYield(): NativeYield | undefined {
@@ -27,11 +31,12 @@ function getNativeYield(): NativeYield | undefined {
 }
 
 const defaultDependencies: SchedulerDependencies = {
+  clearTask: (handle) => {
+    globalThis.clearTimeout(handle as ReturnType<typeof globalThis.setTimeout>);
+  },
   getNativeYield,
   now: () => globalThis.performance.now(),
-  scheduleTask: (continuation) => {
-    globalThis.setTimeout(continuation, 0);
-  },
+  scheduleTask: (continuation) => globalThis.setTimeout(continuation, 0),
 };
 
 export function createScheduler(
@@ -41,16 +46,21 @@ export function createScheduler(
 
   return {
     now: dependencies.now,
-    async yield(): Promise<void> {
+    async yield(signal?: AbortSignal): Promise<void> {
+      throwIfAborted(signal);
       const nativeYield = dependencies.getNativeYield();
 
       if (nativeYield !== undefined) {
-        await nativeYield();
+        await waitForContinuation(nativeYield(), signal);
         return;
       }
 
-      await new Promise<void>((resolve) => {
-        dependencies.scheduleTask(resolve);
+      let handle: TaskHandle;
+      const continuation = new Promise<void>((resolve) => {
+        handle = dependencies.scheduleTask(resolve);
+      });
+      await waitForContinuation(continuation, signal, () => {
+        dependencies.clearTask(handle);
       });
     },
   };

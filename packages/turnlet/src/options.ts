@@ -3,10 +3,12 @@ export const MAX_BUDGET_MS = 50;
 
 export interface ChunkOptions {
   budgetMs?: number;
+  signal?: AbortSignal;
 }
 
 export interface NormalizedChunkOptions {
   budgetMs: number;
+  signal: AbortSignal | undefined;
 }
 
 export function normalizeChunkOptions(
@@ -17,10 +19,6 @@ export function normalizeChunkOptions(
     (options === null || typeof options !== 'object')
   ) {
     throw new TypeError('Turnlet options must be an object.');
-  }
-
-  if (options !== undefined && 'signal' in options) {
-    throw new TypeError('AbortSignal support is not implemented yet.');
   }
 
   const budgetMs = options?.budgetMs ?? DEFAULT_BUDGET_MS;
@@ -36,5 +34,17 @@ export function normalizeChunkOptions(
     );
   }
 
-  return { budgetMs };
+  const signal = options?.signal;
+
+  if (
+    signal !== undefined &&
+    (typeof signal !== 'object' ||
+      typeof signal.aborted !== 'boolean' ||
+      typeof signal.addEventListener !== 'function' ||
+      typeof signal.removeEventListener !== 'function')
+  ) {
+    throw new TypeError('signal must be an AbortSignal.');
+  }
+
+  return { budgetMs, signal };
 }

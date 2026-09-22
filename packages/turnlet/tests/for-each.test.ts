@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { forEachInChunksWithScheduler } from '../src/for-each.js';
-import { type ChunkOptions } from '../src/options.js';
 import { type ChunkScheduler } from '../src/scheduler.js';
 
 function createTestScheduler(times: number[] = [0]): ChunkScheduler {
@@ -150,15 +149,13 @@ describe('forEachInChunks', () => {
     expect(callback).toHaveBeenCalledOnce();
   });
 
-  it('does not silently accept AbortSignal before cancellation is implemented', async () => {
-    const options = {
-      signal: new AbortController().signal,
-    } as ChunkOptions;
+  it('validates the signal before scheduling', async () => {
+    const options = { signal: {} as AbortSignal };
     const scheduler = createTestScheduler();
 
     await expect(
       forEachInChunksWithScheduler([], () => {}, options, scheduler),
-    ).rejects.toThrow('AbortSignal support is not implemented yet');
+    ).rejects.toThrow('signal must be an AbortSignal');
     expect(scheduler.yield).not.toHaveBeenCalled();
   });
 });
