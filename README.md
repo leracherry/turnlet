@@ -1,25 +1,51 @@
 # Turnlet
 
-Small turns. Responsive interfaces.
+**Small turns. Responsive interfaces.**
 
-Turnlet is a TypeScript library in development for processing arrays in cooperative chunks. This repository uses npm workspaces to keep the library and its Vite demonstration separate.
+A small TypeScript library for chunking array work to improve Interaction to Next Paint (INP).
 
-The proposed 0.1 API provides `mapInChunks` and `forEachInChunks` with ordered synchronous callbacks, time-budgeted yielding, and `AbortSignal` cancellation. The contract is specified before implementation so edge cases remain reviewable: [read the API contract](docs/api-contract.md).
+> **Status:** Turnlet is under development. The API below is proposed and is not published yet.
 
-## Workspace
+## Why Turnlet?
 
-- `packages/turnlet` contains the side-effect-free ESM library package.
-- `apps/demo` contains a vanilla TypeScript demonstration.
+Large loops can keep the browser's main thread busy and make an interface feel unresponsive. Turnlet divides that work into small, ordered chunks and yields between them so the browser can handle other tasks.
+
+## API preview
+
+```ts
+import { mapInChunks } from 'turnlet';
+
+const controller = new AbortController();
+
+const results = await mapInChunks(
+  records,
+  (record, index) => validateRecord(record, index),
+  { budgetMs: 5, signal: controller.signal },
+);
+```
+
+Turnlet is designed around two functions:
+
+- `mapInChunks` transforms an array and preserves result order.
+- `forEachInChunks` processes an array without allocating a result array.
+
+Both use synchronous callbacks, support cancellation with `AbortSignal`, and yield before work begins and whenever the time budget is exhausted.
+
+Turnlet cannot interrupt a callback while it is running. If one item takes a long time to process, that callback can still block the main thread. See the [full API contract](docs/api-contract.md) for precise behavior and limitations.
+
+## Repository
+
+- `packages/turnlet` — the side-effect-free ESM library
+- `apps/demo` — a vanilla TypeScript demo
 
 ## Development
 
-Use Node.js 22 and install dependencies from the repository root.
+Use Node.js 22.23.2 and run commands from the repository root:
 
 ```sh
 npm ci
 npm run typecheck
 npm run lint
+npm test
 npm run build
 ```
-
-The public API is specified but not implemented or published yet.
