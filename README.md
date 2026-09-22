@@ -4,13 +4,13 @@
 
 A small TypeScript library for chunking array work to improve Interaction to Next Paint (INP).
 
-> **Status:** Turnlet is under development. The API below is proposed and is not published yet.
+> **Status:** The core API is implemented and tested. Turnlet is not published yet, and the demo is still in development.
 
 ## Why Turnlet?
 
 Large loops can keep the browser's main thread busy and make an interface feel unresponsive. Turnlet divides that work into small, ordered chunks and yields between them so the browser can handle other tasks.
 
-## API preview
+## API
 
 ```ts
 import { mapInChunks } from 'turnlet';

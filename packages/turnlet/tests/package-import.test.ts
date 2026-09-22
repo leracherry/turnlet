@@ -6,6 +6,6 @@ describe('public package entry', () => {
 
     const turnlet = await import('turnlet');
 
-    expect(Object.keys(turnlet)).toEqual(['forEachInChunks']);
+    expect(Object.keys(turnlet)).toEqual(['forEachInChunks', 'mapInChunks']);
   });
 });

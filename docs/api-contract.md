@@ -1,6 +1,6 @@
 # Turnlet API contract
 
-Status: implementation in progress for Turnlet 0.1. `forEachInChunks` implements this contract; `mapInChunks` remains proposed. The package is not published yet.
+Status: implemented and tested for Turnlet 0.1. The package is not published yet.
 
 Turnlet processes a finite array in cooperative chunks. It gives the host an opportunity to run other tasks between chunks while preserving ordinary, sequential callback semantics inside each chunk. It does not move work off the main thread or make an individual callback interruptible.
 
