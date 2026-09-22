@@ -8,11 +8,12 @@
     "apps/*"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run build --workspace turnlet && vitest run",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write ."
   },
@@ -23,6 +24,7 @@
     "prettier": "3.9.8",
     "typescript": "5.9.3",
     "typescript-eslint": "8.70.1",
-    "vite": "6.4.3"
+    "vite": "6.4.3",
+    "vitest": "4.1.11"
   }
 }
