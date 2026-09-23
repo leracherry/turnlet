@@ -41,6 +41,9 @@ jobs:
       - name: Test in browsers
         run: npm run test:browser
 
+      - name: Test production demo
+        run: npm run test:demo
+
       - name: Verify packed package
         run: npm run test:package
 
