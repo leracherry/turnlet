@@ -12,8 +12,9 @@
   },
   "scripts": {
     "build": "npm run build --workspaces --if-present",
+    "dev": "npm run build --workspace turnlet && npm run dev --workspace @turnlet/demo",
     "browser:harness": "vite --host 127.0.0.1 --port 4173",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run build --workspace turnlet && npm run typecheck --workspaces --if-present",
     "test": "npm run build --workspace turnlet && vitest run",
     "test:browser": "playwright test",
     "test:demo": "playwright test --config playwright.demo.config.ts",

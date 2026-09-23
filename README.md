@@ -7,7 +7,22 @@
 Turnlet is a small TypeScript library for processing arrays in cooperative chunks. It gives the browser opportunities to handle input and rendering between chunks, helping you build toward a better [Interaction to Next Paint (INP)](https://web.dev/articles/inp).
 
 > [!NOTE]
-> The core API is implemented and tested, but the package is not published yet. The demo is still in development.
+> The library and interactive catalogue demo are implemented and tested. The package is not published yet. Performance measurements are still planned.
+
+## Try the demo
+
+Use the Node.js version in `.nvmrc`, then run:
+
+```sh
+npm ci
+npm run dev
+```
+
+Open the local URL printed by Vite. Search for **lamp**, **forest mug**, or **ceramix** to try typo matching.
+
+Choose **Blocking** or **Turnlet**, select a workload, and click **Apply and restart**. Both modes search the same seeded catalogue; Turnlet yields in 5 ms chunks and cancels superseded searches. Up to 50 results stay visible while the next query runs.
+
+Read the [demo guide](docs/demo.md) for configuration, comparison limits, and testing.
 
 ## The idea
 
@@ -131,6 +146,7 @@ Browser and package release gates are available separately:
 ```sh
 npx playwright install chromium firefox webkit
 npm run test:browser
+npm run test:demo
 npm run test:package
 ```
 
