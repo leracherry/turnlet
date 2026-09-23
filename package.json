@@ -12,13 +12,16 @@
   },
   "scripts": {
     "build": "npm run build --workspaces --if-present",
+    "browser:harness": "vite --host 127.0.0.1 --port 4173",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run build --workspace turnlet && vitest run",
+    "test:browser": "playwright test",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write ."
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
+    "@playwright/test": "1.63.0",
     "eslint": "9.39.5",
     "globals": "17.4.0",
     "prettier": "3.9.8",
