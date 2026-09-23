@@ -125,3 +125,13 @@ npm run build
 ```
 
 The full gate validates types, formatting, unit tests, the ESM library build, and the production demo build.
+
+Browser and package release gates are available separately:
+
+```sh
+npx playwright install chromium firefox webkit
+npm run test:browser
+npm run test:package
+```
+
+`test:package` installs the real tarball in a clean consumer, checks its declarations and ESM exports, builds a browser consumer, and runs it in Chromium. The current artifact is **6.13 KiB packed** and **19.85 KiB unpacked**.
