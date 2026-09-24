@@ -40,6 +40,10 @@ Invalid URL values fall back to defaults. The seed controls product names, categ
 
 ## Search behavior
 
+The playground uses six small, local SVG illustrations—no remote images, fonts, or animation loops. They are decorative, lazy-loaded, and have reserved dimensions. Keyboard users can skip directly to search; the integration example is focusable and scrolls independently on narrow screens.
+
+Below the catalogue, a short example shows the public API. Its scorer and result accumulator are application-owned: adapt them to your own work, handle rejection, and guard the final render against superseded requests.
+
 - Exact words rank above prefixes, substrings, and one-character typo matches.
 - Every query term must match. Search uses up to four terms and accepts up to 64 characters; each term is capped at 24 characters.
 - Only 50 ranked entries are retained. Equal scores use ascending product ID.
@@ -84,3 +88,5 @@ npm run test:demo
 ```
 
 Unit tests cover deterministic generation, ranking, bounded results, mode equivalence, cancellation, timing ownership, attribution snapshots, and a single metrics subscription. Production-build browser tests cover both modes, keyboard focus, no matches, clearing, rapid input, mobile overflow, real keyboard INP, unavailable metrics, and fresh-session reset.
+
+For visual changes, review the production preview at desktop and narrow mobile widths, including the waiting, measured, unavailable, empty, and loading states. Check keyboard focus and reduced-motion settings. Capture a browser Performance trace while typing into the large workload: search scoring should remain the main application work, not illustrations or metric rendering. This is a UI-overhead sanity check, not a comparison benchmark.

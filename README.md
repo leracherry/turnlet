@@ -26,6 +26,8 @@ Read the [demo guide](docs/demo.md) for configuration, comparison limits, and te
 
 The demo separates **session INP** (interaction responsiveness) from **search completion** (handler start through the accepted DOM update). Missing samples stay explicit—never substituted with example numbers.
 
+The playground includes local product illustrations, keyboard-friendly controls, a responsive layout, and a short integration example below the catalogue. No remote fonts or images are required.
+
 ## The idea
 
 A large synchronous loop occupies the main thread until every item is finished. Turnlet performs the same ordered work in smaller turns:

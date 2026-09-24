@@ -22,7 +22,7 @@ export function mountMetrics(container: HTMLElement) {
           <p class="hint">Excludes input delay and final visible paint. This is not INP.</p>
         </article>
       </div>
-      <p class="hint">INP depends on browser support and reportable interactions. Values update after the browser reports them; no sample is shown as zero.</p>
+      <p class="hint">INP depends on browser support and reportable interactions. Values update after the browser reports them; missing samples are never shown as zero.</p>
     </section>`;
   const select = (id: string): HTMLElement =>
     container.querySelector<HTMLElement>('#' + id)!;

@@ -86,3 +86,47 @@ test('mobile layout stays within the viewport', async ({ page }) => {
     ),
   ).toBe(true);
 });
+
+test('keyboard navigation, local illustrations and reduced motion', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto('/?size=small');
+  await expect(page.locator('#query')).toBeEnabled();
+  await page.keyboard.press('Tab');
+  await expect(
+    page.getByRole('link', { name: 'Skip to search' }),
+  ).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#query')).toBeFocused();
+  await page.locator('.product-illustration').first().scrollIntoViewIfNeeded();
+  await expect
+    .poll(() =>
+      page
+        .locator('.product-illustration')
+        .first()
+        .evaluate(
+          (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
+        ),
+    )
+    .toBe(true);
+  await expect(page.locator('.product-illustration').first()).toHaveAttribute(
+    'alt',
+    '',
+  );
+  await expect(page.getByLabel('Turnlet integration example')).toContainText(
+    'forEachInChunks',
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  expect(
+    await page
+      .locator('.card')
+      .first()
+      .evaluate((el) => getComputedStyle(el).animationName),
+  ).toBe('none');
+});
