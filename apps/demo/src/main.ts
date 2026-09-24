@@ -5,11 +5,19 @@ import { blockingSearch, type TopResults } from './search/search.js';
 import { turnletSearch } from './search/strategies.js';
 import { createSearchController } from './search/controller.js';
 import { mountCatalogue, renderResults } from './ui/catalogue.js';
+import { mountMetrics } from './metrics/panel.js';
 
 const app = document.querySelector<HTMLElement>('#app');
 if (!app) throw new Error('Turnlet demo root was not found.');
 const config = readConfig(new URLSearchParams(location.search));
 const ui = mountCatalogue(app);
+const metrics = mountMetrics(ui.metrics);
+metrics.reset.addEventListener('click', () =>
+  location.assign(configUrl(config)),
+);
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) location.reload();
+});
 ui.controls.innerHTML = `
   <form id="settings" class="settings">
     <div><label for="mode">Search mode</label><select id="mode" name="mode"><option value="turnlet">Turnlet</option><option value="blocking">Blocking</option></select></div>
@@ -50,12 +58,19 @@ setTimeout(() => {
           : turnletSearch(products, query, signal),
       {
         pending: () => {
+          metrics.completion({ status: 'pending' });
           ui.status.textContent = 'Searching…';
           ui.results.setAttribute('aria-busy', 'true');
         },
         commit,
-        clear: () => commit(initial),
+        clear: () => {
+          commit(initial);
+          metrics.completion({ status: 'waiting' });
+        },
+        completed: (duration) =>
+          metrics.completion({ status: 'measured', duration }),
         error: () => {
+          metrics.completion({ status: 'error' });
           ui.status.textContent = 'Search failed. Please try again.';
           ui.results.setAttribute('aria-busy', 'false');
         },
@@ -64,7 +79,8 @@ setTimeout(() => {
     ui.query.disabled = false;
     commit(initial);
     ui.query.addEventListener('input', () => {
-      void controller.update(ui.query.value);
+      const startedAt = performance.now();
+      void controller.update(ui.query.value, startedAt);
     });
     window.addEventListener('pagehide', () => controller.dispose(), {
       once: true,

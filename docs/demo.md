@@ -56,9 +56,24 @@ Use identical seeds, workloads, and completed queries to compare the same work. 
 
 Rapid typing demonstrates cancellation and result ownership, but the amount of completed work can differ between modes. Small inputs can favor a plain loop because yielding adds overhead.
 
-This milestone does not display INP or search timing. Cross-browser correctness checks and a working demo do not establish a performance improvement. Session INP attribution and reproducible measurements are subsequent plan steps.
+Live measurements help explore behavior, but correctness checks and individual readings do not establish a performance improvement. A reproducible performance study remains a separate step.
 
 Catalogue preparation itself is synchronous and occurs before the search input is enabled. Turnlet only schedules the search loop; a long individual callback can still block.
+
+## Read the measurements
+
+| Measurement              | Boundary                                                    | Meaning                                                                                         |
+| ------------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Session INP candidate    | Input delay + event processing + presentation delay         | The current candidate for this document, including interactions with controls                   |
+| Latest search completion | Input-handler entry through the accepted results DOM update | Time to finish the latest query, including yields; excludes earlier input delay and final paint |
+
+INP uses one [`web-vitals` attribution](https://github.com/GoogleChrome/web-vitals) subscription per document. Its value, target, and breakdown are captured together. It is not a timer for every query or necessarily the last interaction, and the candidate can change during a visit.
+
+**Waiting** means there is no attributable sample yet. **Unavailable** means the browser lacks the required Event Timing support. Real keyboard or pointer interactions are needed; synthetic input changes do not establish INP. Event durations are rounded by the browser, and events below the configured 16 ms reporting threshold may not provide an attribution sample.
+
+Search completion changes only for the current accepted request. Cancelled work cannot overwrite a newer reading. Clearing the query resets completion to Waiting without clearing the session INP. Metric updates are batched to an animation frame and are not live-announced on every keystroke.
+
+Use **Reset session** to reload the currently applied configuration and clear both readings. Unapplied control edits are discarded. Applying new settings also starts a fresh document.
 
 ## Verification
 
@@ -68,4 +83,4 @@ npx playwright install chromium
 npm run test:demo
 ```
 
-Unit tests cover deterministic generation, ranking against a full-sort reference, bounded results, mode equivalence, URL validation, cancellation, and stale success/error ownership. Playwright tests run against a production build and cover both modes, keyboard focus, no matches, clearing, rapid input, mobile overflow, and full-document restart.
+Unit tests cover deterministic generation, ranking, bounded results, mode equivalence, cancellation, timing ownership, attribution snapshots, and a single metrics subscription. Production-build browser tests cover both modes, keyboard focus, no matches, clearing, rapid input, mobile overflow, real keyboard INP, unavailable metrics, and fresh-session reset.

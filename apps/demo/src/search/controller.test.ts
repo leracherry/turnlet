@@ -15,10 +15,33 @@ function deferred() {
   return { promise, resolve, reject };
 }
 function view() {
-  return { pending: vi.fn(), commit: vi.fn(), clear: vi.fn(), error: vi.fn() };
+  return {
+    pending: vi.fn(),
+    commit: vi.fn(),
+    clear: vi.fn(),
+    error: vi.fn(),
+    completed: vi.fn(),
+  };
 }
 
 describe('search ownership', () => {
+  it('measures through the accepted DOM commit', async () => {
+    let time = 100;
+    const ui = view();
+    ui.commit.mockImplementation(() => {
+      time += 7;
+    });
+    const controller = createSearchController(
+      () => {
+        time += 13;
+        return new TopResults();
+      },
+      ui,
+      () => time,
+    );
+    await controller.update('lamp', 98);
+    expect(ui.completed).toHaveBeenCalledExactlyOnceWith(22);
+  });
   it.each(['success', 'error'])(
     'ignores a stale %s after newer results',
     async (outcome) => {
@@ -40,6 +63,7 @@ describe('search ownership', () => {
       await first;
       expect(signals[0]!.aborted).toBe(true);
       expect(ui.commit).toHaveBeenCalledExactlyOnceWith(result);
+      expect(ui.completed).toHaveBeenCalledOnce();
       expect(ui.error).not.toHaveBeenCalled();
     },
   );
@@ -53,6 +77,7 @@ describe('search ownership', () => {
     await first;
     expect(ui.clear).toHaveBeenCalledOnce();
     expect(ui.commit).not.toHaveBeenCalled();
+    expect(ui.completed).not.toHaveBeenCalled();
     const failure = new Error('failure');
     const broken = createSearchController(() => {
       throw failure;

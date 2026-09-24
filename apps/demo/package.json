@@ -11,5 +11,8 @@
   },
   "devDependencies": {
     "turnlet": "*"
+  },
+  "dependencies": {
+    "web-vitals": "6.2.2"
   }
 }

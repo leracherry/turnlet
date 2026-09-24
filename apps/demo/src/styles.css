@@ -16,6 +16,58 @@
   margin-bottom: 12px;
   background: #e9ede3;
 }
+
+.metrics {
+  margin: 24px 0;
+  border: 1px solid #d4d9cc;
+  border-radius: 12px;
+  padding: 22px;
+  background: #fffef9;
+}
+.metrics-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.metrics-heading button {
+  padding: 8px 12px;
+  border: 1px solid #aab8ac;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.metric-value {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 650;
+  margin: 12px 0;
+  font-variant-numeric: tabular-nums;
+}
+#inp-breakdown {
+  font-size: 12px;
+}
+#inp-breakdown div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+#inp-target {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+  .metrics {
+    padding: 16px;
+  }
+}
 .settings > div {
   flex: 1 1 160px;
   min-width: 0;

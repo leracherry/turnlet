@@ -32,6 +32,7 @@ export function mountCatalogue(app: HTMLElement) {
     </section>
     <section class="workspace" aria-label="Catalogue search">
       <div id="controls"></div>
+      <div id="metrics"></div>
       <label for="query">Find something good</label>
       <input id="query" type="search" maxlength="64" placeholder="Try ceramic, lamp, or forest…" autocomplete="off" aria-describedby="search-help">
       <p id="search-help" class="hint">Matches names and categories, including small typos. Up to 50 results are displayed.</p>
@@ -46,5 +47,6 @@ export function mountCatalogue(app: HTMLElement) {
     results: app.querySelector<HTMLElement>('#results')!,
     empty: app.querySelector<HTMLElement>('#empty')!,
     controls: app.querySelector<HTMLElement>('#controls')!,
+    metrics: app.querySelector<HTMLElement>('#metrics')!,
   };
 }
