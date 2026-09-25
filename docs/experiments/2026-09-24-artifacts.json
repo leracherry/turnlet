@@ -1,0 +1,20 @@
+{
+  "testedCommit": "037dde8b99ec7f1fd40cc4874673002013330c3e",
+  "package": {
+    "filename": "turnlet-0.0.0.tgz",
+    "sizeBytes": 6476,
+    "unpackedBytes": 20796,
+    "shasum": "da67c9b167a9996617b3f363aa9cfaa3f262578a",
+    "integrity": "sha512-z5UVEE4cstoqvCAIXx+CArhO8WjgskbxVmUMKZgIOgGalvWWTl3Ywq7YhHtXbqtHJ6QTa9+nlNQCr4LFNA9g+g==",
+    "verification": "npm run test:package; npm pack --workspace turnlet --json"
+  },
+  "walkthrough": {
+    "path": "docs/media/walkthrough.webm",
+    "durationSeconds": 14.76,
+    "sizeBytes": 1087559,
+    "width": 1280,
+    "height": 900,
+    "codec": "vp8",
+    "benchmark": false
+  }
+}

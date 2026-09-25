@@ -60,7 +60,7 @@ Use identical seeds, workloads, and completed queries to compare the same work. 
 
 Rapid typing demonstrates cancellation and result ownership, but the amount of completed work can differ between modes. Small inputs can favor a plain loop because yielding adds overhead.
 
-Live measurements help explore behavior, but correctness checks and individual readings do not establish a performance improvement. A reproducible performance study remains a separate step.
+Live measurements help explore behavior, but correctness checks and individual readings do not establish a performance improvement. The [case study](case-study.md) reports a controlled local experiment with raw results, sample counts, and limitations; use the [protocol](methodology.md) to reproduce it.
 
 Catalogue preparation itself is synchronous and occurs before the search input is enabled. Turnlet only schedules the search loop; a long individual callback can still block.
 

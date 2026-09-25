@@ -7,7 +7,7 @@
 Turnlet is a small TypeScript library for processing arrays in cooperative chunks. It gives the browser opportunities to handle input and rendering between chunks, helping you build toward a better [Interaction to Next Paint (INP)](https://web.dev/articles/inp).
 
 > [!NOTE]
-> The library and interactive catalogue demo are implemented and tested. The package is not published yet. Live measurements are available; a reproducible performance study is still planned.
+> The library and interactive catalogue demo are implemented and tested. The package is not published yet. A local case study includes reproducible measurements and their limitations.
 
 ## Try the demo
 
@@ -25,6 +25,8 @@ Choose **Blocking** or **Turnlet**, select a workload, and click **Apply and res
 Read the [demo guide](docs/demo.md) for configuration, comparison limits, and testing.
 
 To collect comparable observations, follow the [measurement protocol](docs/methodology.md). It separates completed searches, rapid input, and small workloads.
+
+Read the [engineering case study](docs/case-study.md) for raw evidence and tradeoffs, or [watch the walkthrough](docs/media/README.md). In the tested setup, Turnlet improved the live responsiveness candidate but took longer to complete searches—not a universal speedup.
 
 The demo separates **session INP** (interaction responsiveness) from **search completion** (handler start through the accepted DOM update). Missing samples stay explicit—never substituted with example numbers.
 
@@ -158,4 +160,4 @@ npm run test:demo
 npm run test:package
 ```
 
-`test:package` installs the real tarball in a clean consumer, checks its declarations and ESM exports, builds a browser consumer, and runs it in Chromium. The current artifact is **6.13 KiB packed** and **19.85 KiB unpacked**.
+`test:package` installs the real tarball in a clean consumer, checks its declarations and ESM exports, builds a browser consumer, and runs it in Chromium. The measured artifact is **6.32 KiB packed** and **20.31 KiB unpacked**; see the [artifact record](docs/experiments/2026-09-24-artifacts.json).
