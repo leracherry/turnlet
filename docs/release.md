@@ -44,13 +44,13 @@ The manual **Release → prepare** action reruns validation and uploads a tarbal
 
 All actions run from `main`. A workflow file alone does not configure npm trust, Pages, or required reviewers.
 
-1. Confirm npm account ownership/access, 2FA, package name, version, and registry. A first publication may require an interactive authenticated maintainer publish before package-level trusted-publisher settings are available. Do not create a placeholder package merely to reserve the name.
+1. Confirm npm account ownership/access, 2FA, package name, version, and registry. Store a granular npm token as the repository Actions secret `NPM_TOKEN`. It needs write access that permits this package's first publication, direct-publish permission (not stage-only), and bypass 2FA for unattended publishing. Do not paste it into source files or logs.
 2. Require green CI on the exact final release commit. Review the tarball. Only then create and push the annotated `v0.1.0` tag on that commit. Preparation does not create this tag.
-3. Configure the GitHub `npm-release` environment with required reviewers. For subsequent CI publication, configure npm trusted publishing for owner `leracherry`, repo `turnlet`, workflow `release.yml`, environment `npm-release`, permitting direct publish. No npm token is stored in the repository.
-4. Dispatch **Release → publish** from `main`. It validates again, requires the version tag to match the run's exact SHA, and publishes the prepared artifact through OIDC. The workflow uses Node 22.23.2 and npm 11.5.1, meeting npm's documented minimums.
+3. Configure the GitHub `npm-release` environment with required reviewers. The workflow passes the secret to npm only for the secret-presence check and publish step; it never prints the value.
+4. Dispatch **Release → publish** from `main`. It validates again, requires the version tag to match the run's exact SHA, and publishes the prepared artifact using the token, with provenance. The workflow uses Node 22.23.2 and npm 11.5.1.
 5. Verify registry metadata, version, provenance, and a clean `npm install turnlet@0.1.0` consumer. Only then add installation claims and mark the changelog released.
 
-For the first interactive publication, use the same validated artifact and npm's interactive login/2FA flow, under explicit authorization. Do not expect OIDC configuration alone to create an unregistered package. If that bootstrap publishes 0.1.0, do not dispatch another publish for the same version.
+After the first publication, prefer migrating to [trusted publishing](https://docs.npmjs.com/trusted-publishers/): configure owner `leracherry`, repo `turnlet`, workflow `release.yml`, and environment `npm-release`, then update the workflow to use OIDC without the token requirement. Revoke the token only after verifying that migration. Do not publish an already-existing version again.
 
 ## Deploy, only after approval
 

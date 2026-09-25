@@ -50,6 +50,19 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: npm install --global npm@11.5.1
+      - name: Configure npm registry authentication
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          registry-url: https://registry.npmjs.org/
+      - name: Require the publishing secret
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::NPM_TOKEN is not configured."
+            exit 1
+          fi
       - name: Require a verified version tag on this exact commit
         env:
           RELEASE_SHA: ${{ github.sha }}
@@ -60,7 +73,10 @@ jobs:
         with:
           name: npm-package
           path: release-artifacts
-      - run: npm publish release-artifacts/turnlet-0.1.0.tgz --access public --registry https://registry.npmjs.org/
+      - name: Publish verified package
+        run: npm publish release-artifacts/turnlet-0.1.0.tgz --access public --provenance --registry https://registry.npmjs.org/
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   deploy:
     if: inputs.action == 'deploy'
     needs: [validate, prepare]
