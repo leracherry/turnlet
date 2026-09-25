@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "startedAt": null,
+  "testedCommit": null,
+  "dirty": null,
+  "assetSha256": null,
+  "environment": {
+    "os": null,
+    "release": null,
+    "arch": null,
+    "cpu": null,
+    "logicalCpus": null,
+    "memoryBytes": null,
+    "node": null,
+    "browser": null,
+    "headed": true,
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "cpuThrottle": 4,
+    "networkThrottle": "none; localhost",
+    "seed": 42,
+    "input": null,
+    "sampling": null,
+    "instrumentation": null
+  },
+  "scenarios": [],
+  "trials": [
+    {
+      "scenario": null,
+      "round": null,
+      "mode": null,
+      "position": null,
+      "status": null,
+      "error": null,
+      "sample": {
+        "sampledAt": null,
+        "visibility": null,
+        "userAgent": null,
+        "scheduler": null,
+        "inputs": [],
+        "inpState": null,
+        "inpMs": null,
+        "attribution": null,
+        "completionMs": null,
+        "status": null,
+        "resultIds": []
+      }
+    }
+  ],
+  "finishedAt": null
+}

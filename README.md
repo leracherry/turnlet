@@ -24,6 +24,8 @@ Choose **Blocking** or **Turnlet**, select a workload, and click **Apply and res
 
 Read the [demo guide](docs/demo.md) for configuration, comparison limits, and testing.
 
+To collect comparable observations, follow the [measurement protocol](docs/methodology.md). It separates completed searches, rapid input, and small workloads.
+
 The demo separates **session INP** (interaction responsiveness) from **search completion** (handler start through the accepted DOM update). Missing samples stay explicit—never substituted with example numbers.
 
 The playground includes local product illustrations, keyboard-friendly controls, a responsive layout, and a short integration example below the catalogue. No remote fonts or images are required.
