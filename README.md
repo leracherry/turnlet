@@ -123,6 +123,8 @@ Turnlet creates scheduling opportunities; it does not guarantee a particular INP
 
 For exact edge-case behavior, see the [API contract](docs/api-contract.md).
 
+Start with the [API guide](docs/api.md) or run the [cancellable record-validation recipe](examples/record-validation/README.md) with `npm run test:examples`.
+
 ## Repository
 
 | Path               | Purpose                                         |

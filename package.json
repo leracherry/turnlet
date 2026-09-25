@@ -15,7 +15,8 @@
     "dev": "npm run build --workspace turnlet && npm run dev --workspace @turnlet/demo",
     "browser:harness": "vite --host 127.0.0.1 --port 4173",
     "typecheck": "npm run build --workspace turnlet && npm run typecheck --workspaces --if-present",
-    "test": "npm run build --workspace turnlet && vitest run",
+    "test": "npm run build --workspace turnlet && vitest run && npm run test:examples",
+    "test:examples": "npm run build --workspace turnlet && tsc -p examples/record-validation/tsconfig.json && node examples/record-validation/dist/run.js",
     "test:browser": "playwright test",
     "test:demo": "playwright test --config playwright.demo.config.ts",
     "test:package": "npm run build --workspace turnlet && node scripts/verify-package.mjs",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@eslint/js": "9.39.5",
     "@playwright/test": "1.63.0",
+    "@types/node": "22.20.4",
     "eslint": "9.39.5",
     "globals": "17.4.0",
     "prettier": "3.9.8",
