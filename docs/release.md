@@ -1,10 +1,12 @@
 # Release checklist
 
+[← Documentation](README.md)
+
 **0.1.0 is prepared, not published or deployed.** No release workflow is triggered by a push or tag. Run it manually from Actions only when the corresponding external action is authorized.
 
 ## Package identity
 
-The intended public package is `turnlet`, owned through the maintainer's npm account. On September 25, 2026, the public registry returned HTTP 404 for this name. This is not a reservation or proof of account permissions. Recheck immediately before publication; if npm rejects the name, choose a controlled scope, update all imports/fixtures, and rerun the gates.
+The intended public package name is `turnlet`; npm ownership has not been established. On September 25, 2026, the public registry returned HTTP 404 for this name. This is not a reservation or proof of account permissions. Recheck immediately before publication; if npm rejects the name, choose a controlled scope, update all imports/fixtures, and rerun the gates.
 
 Only `packages/turnlet` is publishable. Root and demo workspaces remain private. The package is ESM-only, MIT-licensed, dependency-free, and contains built JavaScript, declarations, README, and license. Its prepack hook builds fresh output. See [CHANGELOG](../CHANGELOG.md).
 
@@ -28,11 +30,19 @@ npm pack --workspace turnlet --dry-run
 
 CI runs these correctness gates. The package test installs a real tarball in a clean consumer, checks ESM exports/types, and executes it in Chromium. Review the file list before release: no source tests, credentials, demo dependencies, or media should be included.
 
-The reviewed 0.1.0 candidate contains 24 files: built modules/declarations/source maps, README, license, and package metadata. It is 6,546 bytes packed and 21,002 bytes unpacked. Its npm SHA-1 is `2ab8bfebc51f89b6ca9980c67de95c230bc909c5`; regenerate and compare after any package change. The case study retains its older 0.0.0 artifact sizes as historical evidence.
+The reviewed 0.1.0 candidate contains 24 files: built modules/declarations/source maps, README, license, and package metadata. It is 6,931 bytes packed and 21,871 bytes unpacked. Its npm SHA-1 is `a635af0438b12c0929a7889faa4f1bd70ae554d6`; regenerate and compare after any package change. The case study retains its older 0.0.0 artifact sizes as historical evidence.
 
 The manual **Release → prepare** action reruns validation and uploads a tarball without publishing. Root-build demo assets use `/`; Pages builds explicitly use `/turnlet/`. The separate Pages test checks asset loading, search, home, settings navigation, and session reset beneath that path.
 
 ## Publish, only after approval
+
+| Manual action | Effect after validation        | Additional prerequisite                                 |
+| ------------- | ------------------------------ | ------------------------------------------------------- |
+| `prepare`     | Upload a package artifact only | Review the resulting tarball                            |
+| `publish`     | Publish the artifact to npm    | npm access, protected environment, matching version tag |
+| `deploy`      | Deploy the static demo         | Pages configured, protected environment                 |
+
+All actions run from `main`. A workflow file alone does not configure npm trust, Pages, or required reviewers.
 
 1. Confirm npm account ownership/access, 2FA, package name, version, and registry. A first publication may require an interactive authenticated maintainer publish before package-level trusted-publisher settings are available. Do not create a placeholder package merely to reserve the name.
 2. Require green CI on the exact final release commit. Review the tarball. Only then create and push the annotated `v0.1.0` tag on that commit. Preparation does not create this tag.

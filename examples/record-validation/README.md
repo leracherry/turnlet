@@ -1,5 +1,7 @@
 # Cancellable record validation
 
+[← API guide](../../docs/api.md) · [Source](validate.ts) · [Executable checks](run.ts)
+
 A small example of ordered mapping outside the catalogue demo.
 
 ```sh

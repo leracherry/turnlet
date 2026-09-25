@@ -1,7 +1,9 @@
 # Turnlet API contract
 
+[← Documentation](README.md)
+
 > [!IMPORTANT]
-> This contract is implemented and tested for Turnlet 0.1. The package is not published yet.
+> This contract is implemented and tested for Turnlet 0.1.0. The package is not published yet.
 
 Turnlet processes a finite array in cooperative chunks while preserving ordinary sequential callback behavior. This document defines the exact guarantees and limits of the public API.
 
@@ -150,42 +152,11 @@ Simultaneous calls have independent clocks, schedulers, and cancellation state. 
 
 Turnlet does not provide global fairness, a shared CPU budget, or a frame deadline.
 
-## Examples
+## Practical examples
 
-### Ordered mapping
+The [API guide](api.md) contains self-contained examples of both operations and error handling.
 
-```ts
-const validated = await mapInChunks(
-  records,
-  (record, index) => validateRecord(record, index),
-  { budgetMs: 5 },
-);
-```
-
-### Bounded side effects
-
-```ts
-await forEachInChunks(
-  products,
-  (product) => topResults.consider(scoreProduct(product, query)),
-  { budgetMs: 5 },
-);
-```
-
-### Replacing stale work
-
-```ts
-let activeController: AbortController | undefined;
-
-async function search(query: string) {
-  activeController?.abort();
-  activeController = new AbortController();
-
-  return mapInChunks(products, (product) => scoreProduct(product, query), {
-    signal: activeController.signal,
-  });
-}
-```
+For a complete replacement-work pattern, use the [record-validation recipe](../examples/record-validation/README.md). It combines an AbortController with request IDs: aborting limits obsolete work, while ownership checks prevent stale results or errors from reaching the view. The runner compiles and tests this integration through the public package entry.
 
 ## Not part of 0.1
 

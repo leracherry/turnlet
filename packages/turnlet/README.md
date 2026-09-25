@@ -1,52 +1,69 @@
 # Turnlet
 
-> **Small turns. Responsive interfaces.**
+**Small turns. Responsive interfaces.**
 
-Turnlet processes arrays in cooperative chunks so the browser can handle other work between them. It provides ordered mapping and iteration with time budgets and `AbortSignal` cancellation.
+Process arrays in cooperative chunks while preserving input order. Turnlet yields so the browser has opportunities to handle input and paint between turns.
 
 > [!NOTE]
-> Turnlet 0.1.0 is prepared and tested but is not published yet. See the [release checklist](https://github.com/leracherry/turnlet/blob/main/docs/release.md).
+> Version 0.1.0 is prepared but not published. Use the [repository workspace](https://github.com/leracherry/turnlet#try-it-locally) until publication is verified.
 
-## API
+## Usage
 
 ```ts
-import { forEachInChunks, mapInChunks } from 'turnlet';
+import { mapInChunks, forEachInChunks } from 'turnlet';
 
-const labels = await mapInChunks(products, (product) => product.name, {
-  budgetMs: 5,
+const doubled = await mapInChunks([2, 4], (value) => value * 2);
+// [4, 8]
+
+let total = 0;
+await forEachInChunks([2, 4], (value) => {
+  total += value;
 });
-
-await forEachInChunks(
-  products,
-  (product) => searchResults.consider(scoreProduct(product)),
-  { budgetMs: 5 },
-);
+// total === 6
 ```
+
+`mapInChunks` returns a complete, ordered array. `forEachInChunks` resolves with `void`, without allocating a mapped output array. Callbacks receive `(item, index)` and must be synchronous.
+
+## Options
+
+| Option     | Default | Meaning                                                          |
+| ---------- | ------- | ---------------------------------------------------------------- |
+| `budgetMs` | `5`     | Approximate chunk budget; finite, greater than 0, and at most 50 |
+| `signal`   | None    | AbortSignal for cooperative cancellation                         |
+
+Non-empty operations yield before the first callback. The scheduler uses native `scheduler.yield()` when available and a timer fallback otherwise.
 
 ## Cancellation
 
 ```ts
-const controller = new AbortController();
+import { mapInChunks } from 'turnlet';
 
-const operation = mapInChunks(records, validateRecord, {
+const controller = new AbortController();
+const reason = new Error('Superseded');
+const operation = mapInChunks([1], (value) => value, {
   signal: controller.signal,
 });
+controller.abort(reason);
 
-controller.abort();
-await operation; // rejects with signal.reason
+try {
+  await operation;
+} catch (error) {
+  if (error !== reason) throw error;
+}
 ```
 
-## Options
+Rejection preserves the original abort reason or callback error. A rejected map does not expose a partial result. For replaceable work, also guard the final render against stale requests; see the [validation recipe](https://github.com/leracherry/turnlet/tree/main/examples/record-validation).
 
-| Option     | Default | Description                                                  |
-| ---------- | ------: | ------------------------------------------------------------ |
-| `budgetMs` |     `5` | Approximate callback time per chunk. Valid range: `(0, 50]`. |
-| `signal`   |       — | Cancels pending and future work.                             |
+## Limits
 
-Callbacks must be synchronous. A running callback cannot be interrupted, and one expensive item can exceed the complete chunk budget.
+- Work stays on the main thread. A running callback cannot be interrupted.
+- One expensive callback can exceed the budget; completed side effects are not rolled back.
+- Input must be a dense array. Do not mutate it or relevant item contents until settlement.
+- Async callbacks and thenable results are unsupported.
+- Small workloads may favor a plain loop. There is no guaranteed INP score or shared budget across operations.
 
-Keep the input and relevant item contents unchanged until settlement. Errors and abort reasons retain their identity; completed side effects are not rolled back. Small inputs may be faster with a plain loop.
+ESM-only, with TypeScript declarations and no runtime dependencies. Browser behavior is tested in Chromium, Firefox, and WebKit; minimum browser versions are not specified.
 
-See the [API guide](https://github.com/leracherry/turnlet/blob/main/docs/api.md) and [cancellable record-validation recipe](https://github.com/leracherry/turnlet/tree/main/examples/record-validation) for usage outside the demo and guidance on alternatives.
+[API guide](https://github.com/leracherry/turnlet/blob/main/docs/api.md) · [Exact contract](https://github.com/leracherry/turnlet/blob/main/docs/api-contract.md) · [Case study](https://github.com/leracherry/turnlet/blob/main/docs/case-study.md) · [Release checklist](https://github.com/leracherry/turnlet/blob/main/docs/release.md)
 
-See the [repository README](https://github.com/leracherry/turnlet#readme) and [API contract](https://github.com/leracherry/turnlet/blob/main/docs/api-contract.md) for full behavior and limitations.
+MIT © Valeriia Radchenko

@@ -1,10 +1,14 @@
 # Measuring responsiveness
 
+[← Documentation](README.md)
+
 **Protocol v1 · define the procedure before collecting results.**
 
 This is a controlled local exploration, not a field INP study or a promise of faster search. Keep responsiveness and completion separate.
 
 ## Reproduce
+
+Run commands from the repository root. Commit source changes before collecting publishable evidence; the runner records the tested commit and whether the tree was dirty.
 
 Use the pinned Node version, install dependencies and Chromium, then build:
 
@@ -24,6 +28,14 @@ node scripts/measure-demo.mjs docs/experiments/my-run.json
 The runner refuses to overwrite an existing result. Set `DEMO_URL` only to an equivalent production preview. Do not interact with the measurement browser while it runs. Keep the machine's load and power settings stable; disclose unknown background load.
 
 For a protocol smoke test, append `--dry-run`: one trial per mode per scenario. Dry-run data is not eligible for reported medians.
+
+Inspect and summarize a completed run with:
+
+```sh
+node scripts/summarize-experiment.mjs docs/experiments/my-run.json
+```
+
+The checker expects protocol v1's 30 attempted trials and a clean source revision. Keep unsuccessful attempts in the record; it reports usable counts separately.
 
 ## Fixed scenarios
 

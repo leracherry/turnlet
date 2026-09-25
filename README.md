@@ -1,159 +1,106 @@
 # Turnlet
 
-> **Small turns. Responsive interfaces.**
+**Small turns. Responsive interfaces.**
 
 [![CI](https://github.com/leracherry/turnlet/actions/workflows/ci.yml/badge.svg)](https://github.com/leracherry/turnlet/actions/workflows/ci.yml)
 
-Turnlet is a small TypeScript library for processing arrays in cooperative chunks. It gives the browser opportunities to handle input and rendering between chunks, helping you build toward a better [Interaction to Next Paint (INP)](https://web.dev/articles/inp).
+Process arrays in small, cooperative chunks—giving the browser opportunities to handle input and paint between turns. Two functions, stable ordering, cancellation, and no runtime dependencies.
+
+[Try the demo](#try-it-locally) · [API guide](docs/api.md) · [Case study](docs/case-study.md) · [Documentation](docs/README.md)
 
 > [!NOTE]
-> Version 0.1.0 is prepared and tested, but not published or deployed. A local case study includes reproducible measurements and their limitations.
+> **0.1.0 is prepared, not published or deployed.** Use the local workspace for now. Publishing and hosting remain separate, manual release steps.
 
-## Try the demo
+## The idea
 
-Use the Node.js version in `.nvmrc`, then run:
+A long synchronous loop occupies the main thread until it finishes. Turnlet yields before starting, then between chunks when its time budget is reached:
+
+```text
+Plain loop   work ─────────────────────────────── done
+Turnlet      yield ─ work ─ yield ─ work ─ yield ─ work ─ done
+```
+
+The work stays on the main thread. Callbacks run one at a time, in input order.
+
+## Two functions
+
+| Function          | Use it to                                  | Resolves with           |
+| ----------------- | ------------------------------------------ | ----------------------- |
+| `mapInChunks`     | Transform each item                        | An ordered result array |
+| `forEachInChunks` | Perform work without a mapped output array | `void`                  |
+
+```ts
+import { mapInChunks, forEachInChunks } from 'turnlet';
+
+const doubled = await mapInChunks([2, 4], (value) => value * 2);
+// [4, 8]
+
+let total = 0;
+await forEachInChunks([2, 4], (value) => {
+  total += value;
+});
+// total === 6
+```
+
+Both accept an optional `{ budgetMs, signal }`. The default budget is **5 ms**; valid budgets are finite numbers greater than 0 and at most 50. An `AbortSignal` cancels pending and future work once observed.
+
+For a practical integration, see the [cancellable record-validation recipe](examples/record-validation/README.md). It handles errors and prevents older requests from overwriting newer results.
+
+## Try it locally
+
+Use **Node.js 22.23.2** (see [.nvmrc](.nvmrc)):
 
 ```sh
+git clone git@github.com:leracherry/turnlet.git
+cd turnlet
 npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite. Search for **lamp**, **forest mug**, or **ceramix** to try typo matching.
+Open the URL printed by Vite. Search for **lamp**, **forest mug**, or **ceramix** to try typo matching.
 
-Choose **Blocking** or **Turnlet**, select a workload, and click **Apply and restart**. Both modes search the same seeded catalogue; Turnlet yields in 5 ms chunks and cancels superseded searches. Up to 50 results stay visible while the next query runs.
+Choose **Blocking** or **Turnlet**, select a workload, then **Apply and restart**. Both modes use the same seeded catalogue and scorer; Turnlet yields and cancels superseded searches.
 
-Read the [demo guide](docs/demo.md) for configuration, comparison limits, and testing.
+The demo shows two different clocks:
 
-To collect comparable observations, follow the [measurement protocol](docs/methodology.md). It separates completed searches, rapid input, and small workloads.
+- **Session INP candidate:** interaction responsiveness during this page visit.
+- **Search completion:** handler entry through the latest accepted results DOM update—not final paint.
 
-Read the [engineering case study](docs/case-study.md) for raw evidence and tradeoffs, or [watch the walkthrough](docs/media/README.md). In the tested setup, Turnlet improved the live responsiveness candidate but took longer to complete searches—not a universal speedup.
+[Demo guide](docs/demo.md) · [Walkthrough](docs/media/README.md)
 
-The demo separates **session INP** (interaction responsiveness) from **search completion** (handler start through the accepted DOM update). Missing samples stay explicit—never substituted with example numbers.
+## Know the tradeoffs
 
-The playground includes local product illustrations, keyboard-friendly controls, a responsive layout, and a short integration example below the catalogue. No remote fonts or images are required.
+- Callbacks must be synchronous. One expensive callback can exceed the whole budget.
+- Cancellation cannot interrupt a running callback or undo its side effects.
+- Keep the input and relevant item contents unchanged until the operation settles.
+- Small workloads may finish sooner with a plain loop.
+- Each operation has its own budget; there is no global scheduling policy.
 
-## The idea
+Turnlet creates scheduling opportunities, **not a guaranteed INP score**. In the [local case study](docs/case-study.md), its live INP candidates were lower, but searches took longer to complete. The report includes raw observations, one failed trial, and the limits of that comparison.
 
-A large synchronous loop occupies the main thread until every item is finished. Turnlet performs the same ordered work in smaller turns:
+## Documentation
 
-```text
-regular loop   work ─────────────────────────────── done
-
-Turnlet        work ─ yield ─ work ─ yield ─ work ─ done
-```
-
-The result is still predictable. Callbacks run one at a time, in array order, without moving work to a worker.
-
-## API
-
-Turnlet intentionally provides two operations:
-
-| Function          | Use it when                            | Resolves with           |
-| ----------------- | -------------------------------------- | ----------------------- |
-| `mapInChunks`     | Each item produces a value             | An ordered result array |
-| `forEachInChunks` | Work is performed through side effects | `void`                  |
-
-### Map values
-
-```ts
-import { mapInChunks } from 'turnlet';
-
-const labels = await mapInChunks(
-  products,
-  (product, index) => `${index + 1}. ${product.name}`,
-  { budgetMs: 5 },
-);
-```
-
-### Process without allocating results
-
-```ts
-import { forEachInChunks } from 'turnlet';
-
-await forEachInChunks(
-  products,
-  (product) => searchResults.consider(scoreProduct(product, query)),
-  { budgetMs: 5 },
-);
-```
-
-### Cancel stale work
-
-```ts
-const controller = new AbortController();
-
-const operation = mapInChunks(records, validateRecord, {
-  signal: controller.signal,
-});
-
-controller.abort();
-await operation; // rejects with signal.reason
-```
-
-This is useful for search and filtering interfaces where a newer request makes the previous one irrelevant.
-
-## Options
-
-```ts
-interface ChunkOptions {
-  budgetMs?: number;
-  signal?: AbortSignal;
-}
-```
-
-| Option     | Default | Description                                                                                     |
-| ---------- | ------: | ----------------------------------------------------------------------------------------------- |
-| `budgetMs` |     `5` | Approximate callback time allowed per chunk. Must be greater than `0` and no greater than `50`. |
-| `signal`   |       — | Cancels pending and future work using the signal's original reason.                             |
-
-## What Turnlet guarantees
-
-- **Stable order** — callbacks and mapped results follow the input order.
-- **An initial yield** — non-empty operations yield before the first callback.
-- **Cooperative cancellation** — no new callback starts after cancellation is observed.
-- **Original errors** — callback errors and abort reasons are preserved.
-- **No partial maps** — `mapInChunks` resolves only with a complete result.
-- **No runtime dependencies** — scheduling uses browser APIs directly.
-
-## Know the limits
-
-Turnlet creates scheduling opportunities; it does not guarantee a particular INP score.
-
-- Callbacks must be synchronous.
-- A running callback cannot be interrupted.
-- One expensive item can exceed the entire chunk budget.
-- Work remains on the main thread; CPU-heavy algorithms may still belong in a worker.
-- Each operation has its own budget. Concurrent calls do not share a global CPU limit.
-
-For exact edge-case behavior, see the [API contract](docs/api-contract.md).
-
-Start with the [API guide](docs/api.md) or run the [cancellable record-validation recipe](examples/record-validation/README.md) with `npm run test:examples`.
-
-## Repository
-
-| Path               | Purpose                                         |
-| ------------------ | ----------------------------------------------- |
-| `packages/turnlet` | Side-effect-free ESM library and contract tests |
-| `apps/demo`        | Vanilla TypeScript comparison demo              |
-| `docs`             | API behavior and project documentation          |
+| Start here                                  | What you will find                                  |
+| ------------------------------------------- | --------------------------------------------------- |
+| [API guide](docs/api.md)                    | Usage, cancellation, errors, and alternatives       |
+| [API contract](docs/api-contract.md)        | Exact guarantees and edge cases                     |
+| [Demo guide](docs/demo.md)                  | Controls, search behavior, and measurement meanings |
+| [Case study](docs/case-study.md)            | Results, raw evidence, and engineering tradeoffs    |
+| [Measurement protocol](docs/methodology.md) | Repeatable experiments                              |
+| [Release checklist](docs/release.md)        | Package review, publishing, and deployment          |
 
 ## Development
 
-Maintainers: see the [release checklist](docs/release.md) and [changelog](CHANGELOG.md). Release workflows are manual and require validation before any external action.
-
-Use Node.js `22.23.2` and run commands from the repository root:
+Run from the repository root:
 
 ```sh
-npm ci
 npm run typecheck
 npm run lint
 npm test
 npm run build
 ```
 
-The full gate validates types, formatting, unit tests, the ESM library build, and the production demo build.
-
-Browser and package release gates are available separately:
+For the browser and package gates:
 
 ```sh
 npx playwright install chromium firefox webkit
@@ -163,4 +110,8 @@ npm run test:pages
 npm run test:package
 ```
 
-`test:package` installs the real tarball in a clean consumer, checks its declarations and ESM exports, builds a browser consumer, and runs it in Chromium. The measured artifact is **6.32 KiB packed** and **20.31 KiB unpacked**; see the [artifact record](docs/experiments/2026-09-24-artifacts.json).
+`npm test` includes unit tests, executable usage examples, and evidence checks. Browser tests cover Chromium, Firefox, WebKit, the production demo, and its hosting path. The package gate installs and tests a real tarball in a clean consumer.
+
+Source: [library](packages/turnlet) · [demo](apps/demo) · [validation recipe](examples/record-validation)
+
+[MIT license](LICENSE) · [Changelog](CHANGELOG.md)

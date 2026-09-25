@@ -1,5 +1,7 @@
 # Playground walkthrough
 
+[← Demo guide](../demo.md)
+
 [Watch the walkthrough](walkthrough.webm) · WebM, 1280 × 900
 
 The recording visits Blocking and Turnlet modes, searches for `ceramix`, inspects both clocks, shows a no-match state, and ends with the integration example.

@@ -1,5 +1,7 @@
 # Small turns, different tradeoffs
 
+[← Documentation](README.md)
+
 **A local engineering case study—not a universal INP claim.**
 
 Turnlet's goal is to create opportunities for input and rendering while ordered synchronous work progresses. This experiment asks whether that helps the catalogue demo, and what it costs in completion time.

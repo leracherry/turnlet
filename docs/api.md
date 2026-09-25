@@ -1,5 +1,7 @@
 # Turnlet API
 
+[← Documentation](README.md)
+
 **Two operations. Ordered work. Room for the browser between chunks.**
 
 Import from `turnlet` in this workspace. The package is not published yet.
@@ -35,6 +37,8 @@ Non-empty operations yield before the first callback. Budgets are checked betwee
 ## Cancel and handle rejection
 
 ```ts
+import { mapInChunks } from 'turnlet';
+
 const controller = new AbortController();
 const reason = new Error('Superseded');
 const operation = mapInChunks([1], (value) => value, {
@@ -62,7 +66,7 @@ For replaceable work, cancellation and result ownership belong together: guard t
 - Previously completed side effects remain after failure.
 - Concurrent operations have independent budgets, not a shared fairness policy.
 
-The [API contract](api-contract.md) specifies validation order and all edge cases. The recipe runner compiles and executes counterparts of the examples above.
+The [API contract](api-contract.md) specifies validation order and all edge cases. Run `npm run test:examples` from the repository root to compile and execute counterparts of these examples.
 
 ## When another approach is better
 

@@ -1,10 +1,14 @@
 # Catalogue playground
 
+[← Documentation](README.md)
+
 **One workload. Two ways to schedule it.**
 
 The demo searches synthetic products using either a synchronous loop or Turnlet's public `forEachInChunks` export. The catalogue, scorer, iteration order, and top-50 accumulator are identical in both modes.
 
 ## Run locally
+
+Use the Node version in [`.nvmrc`](../.nvmrc). Run these commands from the repository root:
 
 ```sh
 npm ci
@@ -40,10 +44,6 @@ Invalid URL values fall back to defaults. The seed controls product names, categ
 
 ## Search behavior
 
-The playground uses six small, local SVG illustrations—no remote images, fonts, or animation loops. They are decorative, lazy-loaded, and have reserved dimensions. Keyboard users can skip directly to search; the integration example is focusable and scrolls independently on narrow screens.
-
-Below the catalogue, a short example shows the public API. Its scorer and result accumulator are application-owned: adapt them to your own work, handle rejection, and guard the final render against superseded requests.
-
 - Exact words rank above prefixes, substrings, and one-character typo matches.
 - Every query term must match. Search uses up to four terms and accepts up to 64 characters; each term is capped at 24 characters.
 - Only 50 ranked entries are retained. Equal scores use ascending product ID.
@@ -73,7 +73,9 @@ Catalogue preparation itself is synchronous and occurs before the search input i
 
 INP uses one [`web-vitals` attribution](https://github.com/GoogleChrome/web-vitals) subscription per document. Its value, target, and breakdown are captured together. It is not a timer for every query or necessarily the last interaction, and the candidate can change during a visit.
 
-**Waiting** means there is no attributable sample yet. **Unavailable** means the browser lacks the required Event Timing support. Real keyboard or pointer interactions are needed; synthetic input changes do not establish INP. Event durations are rounded by the browser, and events below the configured 16 ms reporting threshold may not provide an attribution sample.
+For INP, **Waiting** means there is no attributable sample yet; **Unavailable** means the browser lacks the required Event Timing support. Real keyboard or pointer interactions are needed; synthetic input changes do not establish INP. Event durations are rounded by the browser, and events below the configured 16 ms reporting threshold may not provide an attribution sample.
+
+For search completion, **Waiting** means no query has completed since initialization or clearing; **Searching…** means the current query is pending; **Unavailable** means the search failed.
 
 Search completion changes only for the current accepted request. Cancelled work cannot overwrite a newer reading. Clearing the query resets completion to Waiting without clearing the session INP. Metric updates are batched to an animation frame and are not live-announced on every keystroke.
 
@@ -81,10 +83,19 @@ Use **Reset session** to reload the currently applied configuration and clear bo
 
 ## Verification
 
+### Interface checks
+
+The playground uses six local SVG illustrations with reserved dimensions and no remote fonts or images. Keyboard users can skip directly to search. The integration example below the catalogue is focusable and scrolls independently on narrow screens.
+
+That snippet shows the public API, not a complete search implementation: the scorer and accumulator belong to the application. Use the [validation recipe](../examples/record-validation/README.md) for a complete cancellation and request-ownership pattern.
+
+### Automated checks
+
 ```sh
 npm test
 npx playwright install chromium
 npm run test:demo
+npm run test:pages
 ```
 
 Unit tests cover deterministic generation, ranking, bounded results, mode equivalence, cancellation, timing ownership, attribution snapshots, and a single metrics subscription. Production-build browser tests cover both modes, keyboard focus, no matches, clearing, rapid input, mobile overflow, real keyboard INP, unavailable metrics, and fresh-session reset.
