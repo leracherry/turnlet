@@ -5,7 +5,7 @@
 Turnlet processes arrays in cooperative chunks so the browser can handle other work between them. It provides ordered mapping and iteration with time budgets and `AbortSignal` cancellation.
 
 > [!NOTE]
-> Turnlet is implemented and tested but is not published yet.
+> Turnlet 0.1.0 is prepared and tested but is not published yet. See the [release checklist](https://github.com/leracherry/turnlet/blob/main/docs/release.md).
 
 ## API
 

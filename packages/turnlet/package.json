@@ -1,8 +1,11 @@
 {
   "name": "turnlet",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Cooperative array processing for responsive interfaces.",
-  "private": true,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "type": "module",
   "sideEffects": false,
   "files": [
@@ -38,6 +41,7 @@
     "typescript"
   ],
   "scripts": {
+    "prepack": "npm run build",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json && tsc -p tsconfig.browser.json"
   }

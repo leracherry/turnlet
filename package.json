@@ -20,6 +20,7 @@
     "test:examples": "npm run build --workspace turnlet && tsc -p examples/record-validation/tsconfig.json && node examples/record-validation/dist/run.js",
     "test:browser": "playwright test",
     "test:demo": "playwright test --config playwright.demo.config.ts",
+    "test:pages": "playwright test --config playwright.pages.config.ts",
     "test:package": "npm run build --workspace turnlet && node scripts/verify-package.mjs",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write ."

@@ -1,0 +1,88 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Explicit action after validation (prepare makes artifacts only)
+        type: choice
+        default: prepare
+        options:
+          - prepare
+          - publish
+          - deploy
+permissions:
+  contents: read
+concurrency:
+  group: turnlet-release
+  cancel-in-progress: false
+jobs:
+  validate:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+  prepare:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: mkdir release-artifacts
+      - run: npm pack --workspace turnlet --pack-destination release-artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: release-artifacts/*.tgz
+  publish:
+    if: inputs.action == 'publish'
+    needs: [validate, prepare]
+    runs-on: ubuntu-latest
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm install --global npm@11.5.1
+      - name: Require a verified version tag on this exact commit
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          VERSION=$(node -p "require('./packages/turnlet/package.json').version")
+          test "$(git rev-parse "refs/tags/v$VERSION^{}")" = "$RELEASE_SHA"
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: release-artifacts
+      - run: npm publish release-artifacts/turnlet-0.1.0.tgz --access public --registry https://registry.npmjs.org/
+  deploy:
+    if: inputs.action == 'deploy'
+    needs: [validate, prepare]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: npm run build --workspace turnlet
+      - run: npm run build --workspace @turnlet/demo -- --base=/turnlet/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/demo/dist
+      - id: deployment
+        uses: actions/deploy-pages@v4

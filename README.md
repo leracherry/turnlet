@@ -7,7 +7,7 @@
 Turnlet is a small TypeScript library for processing arrays in cooperative chunks. It gives the browser opportunities to handle input and rendering between chunks, helping you build toward a better [Interaction to Next Paint (INP)](https://web.dev/articles/inp).
 
 > [!NOTE]
-> The library and interactive catalogue demo are implemented and tested. The package is not published yet. A local case study includes reproducible measurements and their limitations.
+> Version 0.1.0 is prepared and tested, but not published or deployed. A local case study includes reproducible measurements and their limitations.
 
 ## Try the demo
 
@@ -139,6 +139,8 @@ Start with the [API guide](docs/api.md) or run the [cancellable record-validatio
 
 ## Development
 
+Maintainers: see the [release checklist](docs/release.md) and [changelog](CHANGELOG.md). Release workflows are manual and require validation before any external action.
+
 Use Node.js `22.23.2` and run commands from the repository root:
 
 ```sh
@@ -157,6 +159,7 @@ Browser and package release gates are available separately:
 npx playwright install chromium firefox webkit
 npm run test:browser
 npm run test:demo
+npm run test:pages
 npm run test:package
 ```
 

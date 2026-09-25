@@ -69,6 +69,21 @@ try {
     throw new Error('Turnlet must not declare runtime dependencies.');
   }
 
+  if (
+    packageJson.private ||
+    packageJson.version !== '0.1.0' ||
+    packageJson.name !== 'turnlet' ||
+    packageJson.license !== 'MIT' ||
+    packageJson.publishConfig?.access !== 'public' ||
+    packageJson.publishConfig?.registry !== 'https://registry.npmjs.org/'
+  ) {
+    throw new Error('Unexpected release package metadata.');
+  }
+  const rootLicense = await readFile(join(repositoryRoot, 'LICENSE'), 'utf8');
+  if ((await readFile(join(packageRoot, 'LICENSE'), 'utf8')) !== rootLicense) {
+    throw new Error('Package and repository licenses differ.');
+  }
+
   const packOutput = run('npm', [
     'pack',
     '--workspace',
@@ -94,7 +109,10 @@ try {
   }
 
   for (const file of packedFiles) {
-    if (file.startsWith('src/') || file.startsWith('tests/')) {
+    if (
+      !file.startsWith('dist/') &&
+      !['LICENSE', 'README.md', 'package.json'].includes(file)
+    ) {
       throw new Error(`Packed artifact includes internal file ${file}.`);
     }
   }
