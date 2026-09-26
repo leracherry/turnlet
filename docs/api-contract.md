@@ -3,7 +3,7 @@
 [← Documentation](README.md)
 
 > [!IMPORTANT]
-> This contract is implemented and tested for Turnlet 0.1.0. The package is not published yet.
+> This contract is implemented and tested for [Turnlet 0.1.0](https://www.npmjs.com/package/turnlet), available on npm.
 
 Turnlet processes a finite array in cooperative chunks while preserving ordinary sequential callback behavior. This document defines the exact guarantees and limits of the public API.
 

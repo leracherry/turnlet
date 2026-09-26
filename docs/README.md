@@ -16,7 +16,7 @@ Choose a path:
 
 ## Status
 
-Version **0.1.0** is prepared and tested, but not published or deployed. Imports resolve through the local workspace; no public installation or hosted-demo link is claimed.
+Version **0.1.0** is [available on npm](https://www.npmjs.com/package/turnlet), published September 25, 2026. Install it with `npm install turnlet`. Run the [catalogue playground locally](demo.md#run-locally); package publication and demo hosting are independent.
 
 ## Reading the evidence
 

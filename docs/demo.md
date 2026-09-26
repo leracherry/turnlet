@@ -24,6 +24,8 @@ npm run build
 npm run preview --workspace @turnlet/demo
 ```
 
+See [real search screenshots and the walkthrough](media/README.md) for an example of both modes.
+
 ## Controls
 
 | Control        | Choices                                     | Default |

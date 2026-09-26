@@ -4,7 +4,15 @@
 
 **Two operations. Ordered work. Room for the browser between chunks.**
 
-Import from `turnlet` in this workspace. The package is not published yet.
+## Install
+
+```sh
+npm install turnlet
+```
+
+ESM-only, with TypeScript declarations and no runtime dependencies.
+
+Import the public functions from `turnlet` in your application. The pinned Node version in the repository is for development; it is not a browser runtime requirement.
 
 ## Choose an operation
 

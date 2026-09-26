@@ -2,11 +2,11 @@
 
 [← Documentation](README.md)
 
-**0.1.0 is prepared, not published or deployed.** No release workflow is triggered by a push or tag. Run it manually from Actions only when the corresponding external action is authorized.
+**[0.1.0 is published on npm](https://www.npmjs.com/package/turnlet/v/0.1.0)** as of September 25, 2026. Demo deployment is independent. No release workflow is triggered by a push or tag; future releases use the manual Actions workflow.
 
 ## Package identity
 
-The intended public package name is `turnlet`; npm ownership has not been established. On September 25, 2026, the public registry returned HTTP 404 for this name. This is not a reservation or proof of account permissions. Recheck immediately before publication; if npm rejects the name, choose a controlled scope, update all imports/fixtures, and rerun the gates.
+The public package name is `turnlet`. Registry metadata confirms version 0.1.0 was published at `2026-09-25T22:47:59.620Z`. Check current metadata with `npm view turnlet version time --json`.
 
 Only `packages/turnlet` is publishable. Root and demo workspaces remain private. The package is ESM-only, MIT-licensed, dependency-free, and contains built JavaScript, declarations, README, and license. Its prepack hook builds fresh output. See [CHANGELOG](../CHANGELOG.md).
 
@@ -30,11 +30,13 @@ npm pack --workspace turnlet --dry-run
 
 CI runs these correctness gates. The package test installs a real tarball in a clean consumer, checks ESM exports/types, and executes it in Chromium. Review the file list before release: no source tests, credentials, demo dependencies, or media should be included.
 
-The reviewed 0.1.0 candidate contains 24 files: built modules/declarations/source maps, README, license, and package metadata. It is 6,931 bytes packed and 21,871 bytes unpacked. Its npm SHA-1 is `a635af0438b12c0929a7889faa4f1bd70ae554d6`; regenerate and compare after any package change. The case study retains its older 0.0.0 artifact sizes as historical evidence.
+Regenerate archive sizes and checksums for each candidate; README edits also change the tarball. The case study retains its older 0.0.0 artifact sizes as historical evidence.
 
 The manual **Release → prepare** action reruns validation and uploads a tarball without publishing. Root-build demo assets use `/`; Pages builds explicitly use `/turnlet/`. The separate Pages test checks asset loading, search, home, settings navigation, and session reset beneath that path.
 
-## Publish, only after approval
+## Publish a new version
+
+Version 0.1.0 is immutable. Repository README edits reach npm in a new package release; they do not update the already-published tarball. Push screenshot assets to `main` before publishing a README that references their raw GitHub URLs.
 
 | Manual action | Effect after validation        | Additional prerequisite                                 |
 | ------------- | ------------------------------ | ------------------------------------------------------- |
@@ -44,15 +46,15 @@ The manual **Release → prepare** action reruns validation and uploads a tarbal
 
 All actions run from `main`. A workflow file alone does not configure npm trust, Pages, or required reviewers.
 
-1. Confirm npm account ownership/access, 2FA, package name, version, and registry. Store a granular npm token as the repository Actions secret `NPM_TOKEN`. It needs write access that permits this package's first publication, direct-publish permission (not stage-only), and bypass 2FA for unattended publishing. Do not paste it into source files or logs.
-2. Require green CI on the exact final release commit. Review the tarball. Only then create and push the annotated `v0.1.0` tag on that commit. Preparation does not create this tag.
+1. Confirm npm account ownership/access, 2FA, package name, version, and registry. Store a granular npm token as the repository Actions secret `NPM_TOKEN`. It needs write access that permits the target package, direct-publish permission (not stage-only), and bypass 2FA for unattended publishing. Do not paste it into source files or logs.
+2. Require green CI on the exact final release commit. Review the tarball. Bump the package version and lockfile, update the changelog, and replace the hardcoded `turnlet-0.1.0.tgz` filename in `.github/workflows/release.yml` with the new version before validation. Only then create and push the matching annotated version tag on that commit. Preparation does not create this tag.
 3. Configure the GitHub `npm-release` environment with required reviewers. The workflow passes the secret to npm only for the secret-presence check and publish step; it never prints the value.
 4. Dispatch **Release → publish** from `main`. It validates again, requires the version tag to match the run's exact SHA, and publishes the prepared artifact using the token, with provenance. The workflow uses Node 22.23.2 and npm 11.5.1.
-5. Verify registry metadata, version, provenance, and a clean `npm install turnlet@0.1.0` consumer. Only then add installation claims and mark the changelog released.
+5. Verify registry metadata, version, provenance, and a clean consumer installation pinned to the new version. Only then mark its changelog entry released.
 
-After the first publication, prefer migrating to [trusted publishing](https://docs.npmjs.com/trusted-publishers/): configure owner `leracherry`, repo `turnlet`, workflow `release.yml`, and environment `npm-release`, then update the workflow to use OIDC without the token requirement. Revoke the token only after verifying that migration. Do not publish an already-existing version again.
+For future releases, consider migrating to [trusted publishing](https://docs.npmjs.com/trusted-publishers/): configure owner `leracherry`, repo `turnlet`, workflow `release.yml`, and environment `npm-release`, then update the workflow to use OIDC without the token requirement. Revoke the token only after verifying that migration. Do not publish an already-existing version again.
 
-## Deploy, only after approval
+## Deploy the demo
 
 1. Set repository Pages source to **GitHub Actions** and protect the `github-pages` environment with reviewers. No settings are changed by preparation.
 2. Dispatch **Release → deploy** from `main`. Validation precedes building and uploading the static demo at the repository base path.

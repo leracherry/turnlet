@@ -6,10 +6,15 @@
 
 Process arrays in small, cooperative chunks—giving the browser opportunities to handle input and paint between turns. Two functions, stable ordering, cancellation, and no runtime dependencies.
 
-[Try the demo](#try-it-locally) · [API guide](docs/api.md) · [Case study](docs/case-study.md) · [Documentation](docs/README.md)
+[npm](https://www.npmjs.com/package/turnlet) · [Try the demo](#try-it-locally) · [API guide](docs/api.md) · [Case study](docs/case-study.md) · [Documentation](docs/README.md)
 
-> [!NOTE]
-> **0.1.0 is prepared, not published or deployed.** Use the local workspace for now. Publishing and hosting remain separate, manual release steps.
+## Install
+
+```sh
+npm install turnlet
+```
+
+ESM-only, with TypeScript declarations and no runtime dependencies.
 
 ## The idea
 
@@ -45,6 +50,14 @@ await forEachInChunks([2, 4], (value) => {
 Both accept an optional `{ budgetMs, signal }`. The default budget is **5 ms**; valid budgets are finite numbers greater than 0 and at most 50. An `AbortSignal` cancels pending and future work once observed.
 
 For a practical integration, see the [cancellable record-validation recipe](examples/record-validation/README.md). It handles errors and prevents older requests from overwriting newer results.
+
+## See it in action
+
+The catalogue playground searches **50,000 seeded products** for `ceramix`, matching ceramic items despite the typo. It uses `forEachInChunks` with a 5 ms budget and cancels superseded queries.
+
+![Turnlet catalogue search with workload controls, live responsiveness and completion metrics, and ceramic product results](docs/media/search-turnlet.png)
+
+This is a real local demo capture, with unedited live readings—not a benchmark result. [See both modes and reproduce the screenshots](docs/media/README.md). For a controlled comparison, read the [case study](docs/case-study.md).
 
 ## Try it locally
 
