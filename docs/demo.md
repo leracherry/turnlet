@@ -68,6 +68,8 @@ Catalogue preparation itself is synchronous and occurs before the search input i
 
 ## Read the measurements
 
+**Interaction to Next Paint (INP)** measures how quickly an interaction reaches its next paint. It is separate from the time needed to finish a search.
+
 | Measurement              | Boundary                                                    | Meaning                                                                                         |
 | ------------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | Session INP candidate    | Input delay + event processing + presentation delay         | The current candidate for this document, including interactions with controls                   |

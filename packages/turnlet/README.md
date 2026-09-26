@@ -2,7 +2,9 @@
 
 **Small turns. Responsive interfaces.**
 
-Process arrays in cooperative chunks while preserving input order. Turnlet yields so the browser has opportunities to handle input and paint between turns.
+A tiny TypeScript library for chunking array work to improve **Interaction to Next Paint (INP)**.
+
+Turnlet yields between small chunks so the browser can handle input and paint. Two functions, stable ordering, cancellation, and no runtime dependencies.
 
 ## Inside a browser turn
 

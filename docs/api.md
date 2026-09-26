@@ -4,6 +4,8 @@
 
 **Two operations. Ordered work. Room for the browser between chunks.**
 
+Turnlet is a tiny TypeScript library for chunking array work to improve **Interaction to Next Paint (INP)**. Yielding gives the browser opportunities to respond while the work continues on the main thread.
+
 ## Install
 
 ```sh

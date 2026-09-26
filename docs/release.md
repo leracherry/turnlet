@@ -4,6 +4,22 @@
 
 **[0.1.0 is published on npm](https://www.npmjs.com/package/turnlet/v/0.1.0)** as of September 25, 2026. Demo deployment is independent. No release workflow is triggered by a push or tag; future releases use the manual Actions workflow.
 
+## Updating the npm README
+
+npm displays `packages/turnlet/README.md` from the published package, not the repository-root README or the latest GitHub commit. The old 0.1.0 notice remains on npm until a new version is published. See [npm’s README update instructions](https://docs.npmjs.com/about-package-readme-files/).
+
+The **0.1.1 documentation patch** includes the corrected README, Chrome DevTools screenshots, and TypeScript / Interaction to Next Paint (INP) description. Runtime behavior is unchanged. Its version and lockfile are updated; publication is still a separate step.
+
+After validation passes on the final `main` commit, use the existing release workflow:
+
+```sh
+git tag -a v0.1.1 -m "Turnlet 0.1.1"
+git push origin v0.1.1
+gh workflow run release.yml --ref main -f action=publish
+```
+
+Approve the `npm-release` environment if prompted. The workflow reruns CI, packs the package, checks that the tag matches its exact commit, and publishes with provenance. Once successful, verify `npm view turnlet version` reports `0.1.1` and inspect the npm README. Mark the changelog entry released only after registry verification. Never republish or unpublish 0.1.0 to fix documentation.
+
 ## Package identity
 
 The public package name is `turnlet`. Registry metadata confirms version 0.1.0 was published at `2026-09-25T22:47:59.620Z`. Check current metadata with `npm view turnlet version time --json`.
@@ -47,7 +63,7 @@ Version 0.1.0 is immutable. Repository README edits reach npm in a new package r
 All actions run from `main`. A workflow file alone does not configure npm trust, Pages, or required reviewers.
 
 1. Confirm npm account ownership/access, 2FA, package name, version, and registry. Store a granular npm token as the repository Actions secret `NPM_TOKEN`. It needs write access that permits the target package, direct-publish permission (not stage-only), and bypass 2FA for unattended publishing. Do not paste it into source files or logs.
-2. Require green CI on the exact final release commit. Review the tarball. Bump the package version and lockfile, update the changelog, and replace the hardcoded `turnlet-0.1.0.tgz` filename in `.github/workflows/release.yml` with the new version before validation. Only then create and push the matching annotated version tag on that commit. Preparation does not create this tag.
+2. Bump the package version and lockfile and update the changelog before validation. The workflow derives the tarball filename from the package version. Require green CI on the exact final release commit and review its tarball. Only then create and push the matching annotated version tag on that commit. Preparation does not create this tag.
 3. Configure the GitHub `npm-release` environment with required reviewers. The workflow passes the secret to npm only for the secret-presence check and publish step; it never prints the value.
 4. Dispatch **Release → publish** from `main`. It validates again, requires the version tag to match the run's exact SHA, and publishes the prepared artifact using the token, with provenance. The workflow uses Node 22.23.2 and npm 11.5.1.
 5. Verify registry metadata, version, provenance, and a clean consumer installation pinned to the new version. Only then mark its changelog entry released.

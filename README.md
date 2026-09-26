@@ -4,7 +4,9 @@
 
 [![CI](https://github.com/leracherry/turnlet/actions/workflows/ci.yml/badge.svg)](https://github.com/leracherry/turnlet/actions/workflows/ci.yml)
 
-Process arrays in small, cooperative chunks—giving the browser opportunities to handle input and paint between turns. Two functions, stable ordering, cancellation, and no runtime dependencies.
+A tiny TypeScript library for chunking array work to improve **Interaction to Next Paint (INP)**.
+
+Turnlet yields between small chunks so the browser can handle input and paint. Two functions, stable ordering, cancellation, and no runtime dependencies.
 
 [npm](https://www.npmjs.com/package/turnlet) · [Try the demo](#try-it-locally) · [API guide](docs/api.md) · [Case study](docs/case-study.md) · [Documentation](docs/README.md)
 

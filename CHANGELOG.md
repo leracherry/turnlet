@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 — pending publication
 
+Documentation and package metadata only; runtime behavior is unchanged.
+
+- Made TypeScript and Interaction to Next Paint (INP) explicit in the READMEs and package description.
 - Updated installation and release documentation following npm publication.
 - Added reproducible screenshots of real catalogue searches.
 - Featured real Chrome DevTools performance recordings in both READMEs, with downloadable traces and capture instructions.

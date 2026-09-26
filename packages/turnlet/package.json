@@ -1,7 +1,7 @@
 {
   "name": "turnlet",
-  "version": "0.1.0",
-  "description": "Cooperative array processing for responsive interfaces.",
+  "version": "0.1.1",
+  "description": "A tiny TypeScript library for chunking array work to improve Interaction to Next Paint (INP).",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -34,11 +34,12 @@
     "url": "https://github.com/leracherry/turnlet/issues"
   },
   "keywords": [
-    "chunking",
-    "cooperative-scheduling",
+    "typescript",
+    "interaction-to-next-paint",
     "inp",
-    "performance",
-    "typescript"
+    "web-performance",
+    "chunking",
+    "cooperative-scheduling"
   ],
   "scripts": {
     "prepack": "npm run build",

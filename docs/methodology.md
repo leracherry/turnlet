@@ -4,7 +4,7 @@
 
 **Protocol v1 · define the procedure before collecting results.**
 
-This is a controlled local exploration, not a field INP study or a promise of faster search. Keep responsiveness and completion separate.
+This is a controlled local exploration, not a field Interaction to Next Paint (INP) study or a promise of faster search. Keep responsiveness and completion separate.
 
 ## Reproduce
 

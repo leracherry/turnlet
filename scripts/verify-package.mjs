@@ -71,7 +71,7 @@ try {
 
   if (
     packageJson.private ||
-    packageJson.version !== '0.1.0' ||
+    !/^\d+\.\d+\.\d+$/.test(packageJson.version) ||
     packageJson.name !== 'turnlet' ||
     packageJson.license !== 'MIT' ||
     packageJson.publishConfig?.access !== 'public' ||
@@ -93,6 +93,9 @@ try {
     '--json',
   ]);
   const [packed] = JSON.parse(packOutput);
+  if (packed.version !== packageJson.version) {
+    throw new Error('Packed version differs from the package manifest.');
+  }
   const packedFiles = new Set(packed.files.map((file) => file.path));
   const requiredFiles = [
     'LICENSE',
@@ -124,6 +127,16 @@ try {
     ['install', '--ignore-scripts', '--no-audit', '--no-fund', tarballPath],
     { cwd: consumerRoot },
   );
+
+  const installedReadme = await readFile(
+    join(consumerRoot, 'node_modules', 'turnlet', 'README.md'),
+    'utf8',
+  );
+  if (
+    installedReadme !== (await readFile(join(packageRoot, 'README.md'), 'utf8'))
+  ) {
+    throw new Error('Packed README differs from the package README.');
+  }
 
   const typescriptBin = join(
     repositoryRoot,

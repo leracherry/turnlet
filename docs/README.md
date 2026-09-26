@@ -2,6 +2,8 @@
 
 [← Turnlet](../README.md)
 
+Turnlet is a tiny TypeScript library for chunking array work to improve **Interaction to Next Paint (INP)**. Yielding gives the browser opportunities to respond while the work continues on the main thread.
+
 Choose a path:
 
 | I want to…                 | Read                                                             |

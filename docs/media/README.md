@@ -4,7 +4,7 @@
 
 ## Chrome performance recordings
 
-These are screenshots of **Chrome DevTools itself**, with the Performance panel’s INP breakdown expanded. The underlying recordings come from the production Turnlet demo, using the same scorer, 50,000 products, seed 42, and a final query of `ceramix`.
+These are screenshots of **Chrome DevTools itself**, with the Performance panel’s Interaction to Next Paint (INP) breakdown expanded. The underlying recordings come from the production Turnlet demo, using the same scorer, 50,000 products, seed 42, and a final query of `ceramix`.
 
 ### Turnlet: work across tasks
 

@@ -4,7 +4,7 @@
 
 **A local engineering case study—not a universal INP claim.**
 
-Turnlet's goal is to create opportunities for input and rendering while ordered synchronous work progresses. This experiment asks whether that helps the catalogue demo, and what it costs in completion time.
+Turnlet targets Interaction to Next Paint (INP) by creating opportunities for input and rendering while ordered synchronous work progresses. This experiment asks whether that helps the catalogue demo, and what it costs in completion time.
 
 [Protocol](methodology.md) · [Raw trials](experiments/2026-09-24-chromium-macos.json) · [Walkthrough](media/README.md) · [API guide](api.md)
 
