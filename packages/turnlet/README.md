@@ -4,6 +4,14 @@
 
 Process arrays in cooperative chunks while preserving input order. Turnlet yields so the browser has opportunities to handle input and paint between turns.
 
+## Inside a browser turn
+
+Chrome DevTools recording of a real search across **50,000 products**, using `forEachInChunks` with a 5 ms budget:
+
+![Chrome DevTools Performance panel showing Turnlet’s short input handler, separate search tasks, and INP breakdown](https://raw.githubusercontent.com/leracherry/turnlet/main/docs/media/performance-turnlet.png)
+
+A local recording at 4× CPU slowdown, zoomed to the interaction; individual timings vary. [Blocking comparison and downloadable traces](https://github.com/leracherry/turnlet/blob/main/docs/media/README.md#chrome-performance-recordings) · [Controlled case study](https://github.com/leracherry/turnlet/blob/main/docs/case-study.md)
+
 ## Install
 
 ```sh
@@ -58,14 +66,6 @@ try {
 ```
 
 Rejection preserves the original abort reason or callback error. A rejected map does not expose a partial result. For replaceable work, also guard the final render against stale requests; see the [validation recipe](https://github.com/leracherry/turnlet/tree/main/examples/record-validation).
-
-## Real example: cancellable catalogue search
-
-The [playground](https://github.com/leracherry/turnlet#try-it-locally) searches 50,000 seeded products using `forEachInChunks`, a 5 ms budget, and cancellation when the query changes. Searching for `ceramix` matches ceramic products through typo-tolerant scoring.
-
-![Turnlet searching the catalogue with live metrics and ceramic product results](https://raw.githubusercontent.com/leracherry/turnlet/main/docs/media/search-turnlet.png)
-
-An actual local demo capture; readings vary by device and session. See the [capture details and Blocking view](https://github.com/leracherry/turnlet/blob/main/docs/media/README.md) or the [controlled case study](https://github.com/leracherry/turnlet/blob/main/docs/case-study.md).
 
 ## Limits
 

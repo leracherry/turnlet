@@ -4,6 +4,7 @@
 
 - Updated installation and release documentation following npm publication.
 - Added reproducible screenshots of real catalogue searches.
+- Featured real Chrome DevTools performance recordings in both READMEs, with downloadable traces and capture instructions.
 
 ## 0.1.0 — 2026-09-25
 
